@@ -35,7 +35,7 @@ function run(creep) {
         let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
             const path = getPath(creep.pos, source.pos);
-            creep.moveByPath(path);
+            creep.moveByPath(path, { visualizePathStyle: { stroke: '#ffaa00' } });
         } else {
             runRemoteMining(creep);
         }
