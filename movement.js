@@ -1,11 +1,6 @@
 function moveTo(creep, target, visualize = false) {
-    if (!creep.memory._move || creep.memory._move.target !== target.id) {
-        const path = creep.pos.findPathTo(target, { ignoreCreeps: true });
-        creep.memory._move = { path: Room.serializePath(path), target: target.id };
-    }
-    
     const pathStyle = visualize ? { visualizePathStyle: { stroke: '#ffaa00' } } : {};
-    creep.moveByPath(creep.memory._move.path, pathStyle);
+    creep.moveTo(target, pathStyle);
 }
 
 function say(creep, message, frequency = 10) {
@@ -15,4 +10,15 @@ function say(creep, message, frequency = 10) {
     }
 }
 
-module.exports = { moveTo, say };
+function getRandomNearbyPos(pos) {
+    const offsetX = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+    const offsetY = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+    return new RoomPosition(pos.x + offsetX, pos.y + offsetY, pos.roomName);
+}
+
+function moveToRandomNearbyPos(creep, target, visualize = false) {
+    const randomPos = getRandomNearbyPos(target.pos);
+    moveTo(creep, randomPos, visualize);
+}
+
+module.exports = { moveTo, say, moveToRandomNearbyPos };
