@@ -3,6 +3,8 @@ const upgrader = require('./upgrader');
 const builder = require('./builder');
 const hauler = require('./hauler');
 const defender = require('./defender');
+const tower = require('./tower');
+const claimer = require('./claimer');
 
 // Constants to define desired numbers of each creep role
 const HARVESTER_COUNT = 2;
@@ -10,6 +12,7 @@ const UPGRADER_COUNT = 1;
 const BUILDER_COUNT = 1;
 const HAULER_COUNT = 2;
 const DEFENDER_COUNT = 1;
+const CLAIMER_COUNT = 1;
 
 // Minimum energy reserve to ensure critical creeps can be spawned
 const MINIMUM_ENERGY_RESERVE = 300;
@@ -34,6 +37,7 @@ module.exports.loop = function () {
     const builders = _.filter(Game.creeps, (creep) => creep.memory.role === 'builder');
     const haulers = _.filter(Game.creeps, (creep) => creep.memory.role === 'hauler');
     const defenders = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender');
+    const claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
 
     // Check if there is enough energy to spawn a new creep
     if (Game.spawns['Spawn1'].room.energyAvailable >= MINIMUM_ENERGY_RESERVE) {
@@ -47,6 +51,8 @@ module.exports.loop = function () {
             spawnCreep('builder');
         } else if (defenders.length < DEFENDER_COUNT) {
             spawnCreep('defender');
+        } else if (claimers.length < CLAIMER_COUNT) {
+            spawnCreep('claimer');
         }
     }
 
@@ -63,7 +69,15 @@ module.exports.loop = function () {
             hauler.run(creep);
         } else if (creep.memory.role === 'defender') {
             defender.run(creep);
+        } else if (creep.memory.role === 'claimer') {
+            claimer.run(creep);
         }
+    }
+
+    // Tower logic
+    const towers = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
+    for (let t of towers) {
+        tower.run(t);
     }
 };
 
@@ -81,7 +95,9 @@ function spawnCreep(role) {
     } else if (role === 'builder' || role === 'upgrader') {
         body = [WORK, CARRY, MOVE];
     } else if (role === 'defender') {
-        body = [TOUGH, ATTACK, MOVE, MOVE]; // Example for defender
+        body = [TOUGH, ATTACK, MOVE, MOVE];
+    } else if (role === 'claimer') {
+        body = [CLAIM, MOVE];
     } else {
         body = [WORK, WORK, CARRY, MOVE]; // Example for harvester
     }
