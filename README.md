@@ -4,20 +4,6 @@
 
 This repository contains scripts for managing a Screeps colony, including roles, task management, defense logic, and room expansion.
 
-## File Structure
-
-src/
-├── main.js
-├── taskManager.js
-├── towers.js
-├── cache.js
-├── construction.js
-├── worker.js
-├── defender.js
-├── claimer.js
-└── roomManager.js
-
-
 ## Modules
 
 ### main.js
@@ -74,23 +60,3 @@ src/
 1. Clone the repository:
    ```sh
    git clone https://github.com/loslapleo/Screeps.git
-
-
-
-### Code Review Summary
-
-- **main.js**: Properly handles memory cleanup, spawning creeps, assigning tasks, managing rooms, and allocating resources.
-- **taskManager.js**: Efficiently manages task assignments and prioritizes tasks.
-- **worker.js**: Well-organized, handles multiple tasks, includes emergency defense, and integrates path caching.
-- **cache.js**: Implements path caching to optimize CPU usage.
-- **construction.js**: Manages construction site creation effectively.
-- **defender.js** and **claimer.js**: Handle respective roles efficiently.
-- **roomManager.js**: Manages room infrastructure and expansion effectively.
-
-### Next Steps
-
-1. **Monitor and Optimize**: Continue monitoring performance and optimize as necessary.
-2. **Expand Features**: Implement advanced defense mechanisms, inter-room logistics, and further refine resource management.
-3. **Documentation**: Keep updating the README and comments within the code for clarity and future reference.
-
-These improvements should ensure your colony continues to grow and operate efficiently. If you have specific features you want to add or need further help, let me know!
