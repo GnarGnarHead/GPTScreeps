@@ -1,49 +1,54 @@
-const { getPath } = require('cache');
 const { moveTo, say } = require('movement');
 
+function findAndAct(creep, findFunc, actionFunc, actionText, visualize = false) {
+    const target = findFunc();
+    if (target) {
+        say(creep, actionText);
+        if (actionFunc(target) === ERR_NOT_IN_RANGE) {
+            moveTo(creep, target, visualize);
+        }
+        return true;
+    }
+    return false;
+}
+
 function manageConstructionAndRepairs(creep) {
-    if (creep.memory.working) {
-        // Critical repairs first (decaying structures like containers and roads)
-        let criticalRepairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+    if (!creep.memory.working) return;
+
+    // Critical repairs first
+    if (findAndAct(
+        creep,
+        () => creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_ROAD) && structure.hits < structure.hitsMax * 0.5
-        });
-        if (criticalRepairTarget) {
-            say(creep, '🔧 repair');
-            if (creep.repair(criticalRepairTarget) === ERR_NOT_IN_RANGE) {
-                moveTo(creep, criticalRepairTarget);
-            }
-            return;
-        }
+        }),
+        target => creep.repair(target),
+        '🔧 repair'
+    )) return;
 
-        // Then construction
-        let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
-        if (target) {
-            say(creep, '🚧 build');
-            if (creep.build(target) === ERR_NOT_IN_RANGE) {
-                moveTo(creep, target);
-            }
-            return;
-        }
+    // Construction
+    if (findAndAct(
+        creep,
+        () => creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES),
+        target => creep.build(target),
+        '🚧 build'
+    )) return;
 
-        // General repairs
-        let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+    // General repairs
+    if (findAndAct(
+        creep,
+        () => creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: (structure) => structure.hits < structure.hitsMax
-        });
-        if (repairTarget) {
-            say(creep, '🔨 repair');
-            if (creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
-                moveTo(creep, repairTarget);
-            }
-            return;
-        }
+        }),
+        target => creep.repair(target),
+        '🔨 repair'
+    )) return;
 
-        // Finally, upgrade the controller
-        let controller = creep.room.controller;
-        if (controller) {
-            say(creep, '⚡ upgrade');
-            if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-                moveTo(creep, controller);
-            }
+    // Upgrade controller
+    const controller = creep.room.controller;
+    if (controller) {
+        say(creep, '⚡ upgrade');
+        if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+            moveTo(creep, controller);
         }
     }
 }
