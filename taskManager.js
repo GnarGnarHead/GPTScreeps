@@ -15,6 +15,10 @@ class TaskManager {
     hasTasks() {
         return this.tasks.length > 0;
     }
+
+    count() {
+        return this.tasks.length;
+    }
 }
 
 module.exports = new TaskManager();
