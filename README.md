@@ -1,4 +1,26 @@
 
+# Screeps Colony Scripts
+
+## Overview
+
+This repository contains scripts for managing a Screeps colony, including roles, task management, defense logic, and room expansion.
+
+## File Structure
+
+
+
+src/
+├── main.js
+├── taskManager.js
+├── towers.js
+├── cache.js
+├── construction.js
+├── worker.js
+├── defender.js
+├── claimer.js
+└── roomManager.js
+
+
 ## Modules
 
 ### main.js
@@ -6,6 +28,7 @@
 - Spawns creeps based on priorities.
 - Assigns tasks using taskManager.
 - Runs tower defense logic.
+- Manages room infrastructure and expansion.
 
 ### taskManager.js
 - Assigns tasks to creeps based on role.
@@ -29,6 +52,10 @@
 
 ### claimer.js
 - Manages claimer creep behavior for claiming new rooms.
+
+### roomManager.js
+- Manages room infrastructure and expansion.
+- Sends claimers to new rooms and sets up basic infrastructure.
 
 ## Future Development Goals
 
