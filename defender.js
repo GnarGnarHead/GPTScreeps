@@ -1,9 +1,9 @@
-const { moveTo } = require('movement');
+const { moveTo, say } = require('movement');
 
 function run(creep) {
     const hostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     if (hostile) {
-        creep.say('⚔️ attack');
+        say(creep, '⚔️ attack', 3);
         if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
             moveTo(creep, hostile);
         } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
