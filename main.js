@@ -32,12 +32,20 @@ module.exports.loop = function () {
     }
 
     // Assign tasks to creeps
-    assignTasks();
+    try {
+        assignTasks();
+    } catch (error) {
+        console.log('Error in assignTasks:', error);
+    }
 
     // Tower logic
-    const towersArray = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
-    for (let t of towersArray) {
-        towers.run(t);
+    try {
+        const towersArray = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
+        for (let t of towersArray) {
+            towers.run(t);
+        }
+    } catch (error) {
+        console.log('Error in tower logic:', error);
     }
 };
 
@@ -72,6 +80,4 @@ function spawnCreep(role) {
             console.log('Error spawning ' + role + ': ' + result);
         }
     } else {
-        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
-    }
-}
+        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequi
