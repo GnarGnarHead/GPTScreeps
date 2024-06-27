@@ -1,10 +1,3 @@
-/**
- * Tower Module
- * 
- * This module defines the behavior of towers.
- * Towers prioritize attacking the highest threat targets and repairing structures.
- */
-
 function run(tower) {
     const closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     if (closestHostile) {
