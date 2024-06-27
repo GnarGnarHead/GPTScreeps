@@ -57,6 +57,19 @@ module.exports.loop = function () {
     }
 
     // Assign tasks to creeps based on their roles
+    assignTasks();
+
+    // Tower logic
+    const towers = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
+    for (let t of towers) {
+        tower.run(t);
+    }
+};
+
+/**
+ * Function to assign tasks to creeps based on their roles.
+ */
+function assignTasks() {
     for (let name in Game.creeps) {
         let creep = Game.creeps[name];
         if (creep.memory.role === 'harvester') {
@@ -73,13 +86,7 @@ module.exports.loop = function () {
             claimer.run(creep);
         }
     }
-
-    // Tower logic
-    const towers = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
-    for (let t of towers) {
-        tower.run(t);
-    }
-};
+}
 
 /**
  * Function to spawn creeps based on role.
