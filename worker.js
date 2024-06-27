@@ -20,17 +20,23 @@ function run(creep) {
 
 function harvestAndTransport(creep) {
     if (creep.store.getFreeCapacity() > 0) {
-        // Harvest resources
-        const source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-        if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
-            moveTo(creep, source);
+        // Find the nearest available source
+        const sources = creep.room.find(FIND_SOURCES_ACTIVE);
+        if (sources.length > 0) {
+            const source = creep.pos.findClosestByPath(sources, {
+                filter: (source) => source.energy > 0 && creep.room.lookForAt(LOOK_CREEPS, source.pos).length < 2
+            });
+            if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                moveTo(creep, source);
+            }
         }
     } else {
-        // Transport resources to storage or structures
+        // Transport resources to the nearest container or storage
         const target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-            filter: (structure) => (structure.structureType === STRUCTURE_SPAWN ||
-                                    structure.structureType === STRUCTURE_EXTENSION ||
-                                    structure.structureType === STRUCTURE_STORAGE) &&
+            filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER ||
+                                    structure.structureType === STRUCTURE_STORAGE ||
+                                    structure.structureType === STRUCTURE_SPAWN ||
+                                    structure.structureType === STRUCTURE_EXTENSION) &&
                                     structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0
         });
 
