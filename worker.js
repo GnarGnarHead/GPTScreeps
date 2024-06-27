@@ -14,10 +14,10 @@ function run(creep) {
     if (creep.memory.working) {
         manageConstructionAndRepairs(creep);
     } else {
-        if (creep.memory.hauling) {
-            haulResources(creep);
-        } else {
+        if (creep.memory.role === 'harvester') {
             harvestResources(creep);
+        } else if (creep.memory.role === 'transporter') {
+            transportResources(creep);
         }
     }
 }
@@ -27,31 +27,35 @@ function harvestResources(creep) {
     if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
         moveTo(creep, source);
     } else {
-        // Drop off resources at the nearest container or storage
-        const dropOff = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-            filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER ||
-                                    structure.structureType === STRUCTURE_STORAGE) &&
-                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+        const container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => structure.structureType === STRUCTURE_CONTAINER &&
+                                   structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0
         });
-        if (dropOff && creep.transfer(dropOff, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            moveTo(creep, dropOff);
+        if (container && creep.transfer(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            moveTo(creep, container);
         }
     }
 }
 
-function haulResources(creep) {
+function transportResources(creep) {
     if (creep.store[RESOURCE_ENERGY] === 0) {
-        creep.memory.hauling = false;
+        const container = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => structure.structureType === STRUCTURE_CONTAINER &&
+                                   structure.store[RESOURCE_ENERGY] > 0
+        });
+        if (container && creep.withdraw(container, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            moveTo(creep, container);
+        }
     } else {
-        const dropOff = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+        const storage = creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: (structure) => (structure.structureType === STRUCTURE_SPAWN ||
                                     structure.structureType === STRUCTURE_EXTENSION ||
                                     structure.structureType === STRUCTURE_STORAGE) &&
                                     structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0
         });
 
-        if (dropOff && creep.transfer(dropOff, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            moveTo(creep, dropOff);
+        if (storage && creep.transfer(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            moveTo(creep, storage);
         }
     }
 }
