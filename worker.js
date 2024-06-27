@@ -21,6 +21,8 @@ function runWorker(creep) {
     if (hostile) {
         if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
             creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+        } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
         }
         return; // Skip other tasks if defending
     }
