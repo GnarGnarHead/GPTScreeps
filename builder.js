@@ -16,7 +16,14 @@ function runBuilder(creep) {
     }
 
     if (creep.memory.working) {
-        let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+        let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES, {
+            filter: (site) => site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_EXTENSION
+        });
+
+        if (!target) {
+            target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+        }
+
         if (target) {
             if (creep.build(target) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
