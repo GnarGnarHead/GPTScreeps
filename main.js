@@ -125,6 +125,7 @@ function spawnCreep(role) {
 
     if (energyAvailable >= energyRequired) {
         let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
+
         if (result === OK) {
             console.log('Spawning new ' + role + ': ' + newName);
         } else {
