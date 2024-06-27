@@ -1,8 +1,12 @@
 const worker = require('./worker');
-const taskManager = require('./taskManager');
+const defender = require('./defender');
+const claimer = require('./claimer');
+const towers = require('./towers');
 
 // Constants to define desired numbers of each creep role
-const WORKER_COUNT = 10;
+const WORKER_COUNT = 6; // Combined count of harvester, upgrader, builder, hauler, repairer roles
+const DEFENDER_COUNT = 2;
+const CLAIMER_COUNT = 1;
 
 // Minimum energy reserve to ensure critical creeps can be spawned
 const MINIMUM_ENERGY_RESERVE = 300;
@@ -23,11 +27,17 @@ module.exports.loop = function () {
 
     // Filter creeps by their roles
     const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker');
+    const defenders = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender');
+    const claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
 
     // Check if there is enough energy to spawn a new creep
     if (Game.spawns['Spawn1'].room.energyAvailable >= MINIMUM_ENERGY_RESERVE) {
         if (workers.length < WORKER_COUNT) {
             spawnCreep('worker');
+        } else if (defenders.length < DEFENDER_COUNT) {
+            spawnCreep('defender');
+        } else if (claimers.length < CLAIMER_COUNT) {
+            spawnCreep('claimer');
         }
     }
 
@@ -47,7 +57,13 @@ module.exports.loop = function () {
 function assignTasks() {
     for (let name in Game.creeps) {
         let creep = Game.creeps[name];
-        worker.run(creep);
+        if (creep.memory.role === 'worker') {
+            worker.run(creep);
+        } else if (creep.memory.role === 'defender') {
+            defender.run(creep);
+        } else if (creep.memory.role === 'claimer') {
+            claimer.run(creep);
+        }
     }
 }
 
@@ -59,7 +75,14 @@ function assignTasks() {
  * @param {string} role - The role of the creep to be spawned.
  */
 function spawnCreep(role) {
-    let body = [WORK, CARRY, MOVE, MOVE];
+    let body;
+    if (role === 'worker') {
+        body = [WORK, CARRY, MOVE];
+    } else if (role === 'defender') {
+        body = [TOUGH, ATTACK, MOVE, MOVE];
+    } else if (role === 'claimer') {
+        body = [CLAIM, MOVE];
+    }
 
     let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
     let spawnName = Game.spawns['Spawn1'];
