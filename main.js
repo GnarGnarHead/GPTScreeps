@@ -5,6 +5,7 @@ const hauler = require('./hauler');
 const defender = require('./defender');
 const towers = require('./towers');
 const claimer = require('./claimer');
+const repairer = require('./repairer');
 
 // Constants to define desired numbers of each creep role
 const HARVESTER_COUNT = 2;
@@ -13,6 +14,7 @@ const BUILDER_COUNT = 1;
 const HAULER_COUNT = 2;
 const DEFENDER_COUNT = 1;
 const CLAIMER_COUNT = 1;
+const REPAIRER_COUNT = 1;
 
 // Minimum energy reserve to ensure critical creeps can be spawned
 const MINIMUM_ENERGY_RESERVE = 300;
@@ -38,6 +40,7 @@ module.exports.loop = function () {
     const haulers = _.filter(Game.creeps, (creep) => creep.memory.role === 'hauler');
     const defenders = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender');
     const claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
+    const repairers = _.filter(Game.creeps, (creep) => creep.memory.role === 'repairer');
 
     // Check if there is enough energy to spawn a new creep
     if (Game.spawns['Spawn1'].room.energyAvailable >= MINIMUM_ENERGY_RESERVE) {
@@ -53,6 +56,8 @@ module.exports.loop = function () {
             spawnCreep('defender');
         } else if (claimers.length < CLAIMER_COUNT) {
             spawnCreep('claimer');
+        } else if (repairers.length < REPAIRER_COUNT) {
+            spawnCreep('repairer');
         }
     }
 
@@ -84,6 +89,8 @@ function assignTasks() {
             defender.run(creep);
         } else if (creep.memory.role === 'claimer') {
             claimer.run(creep);
+        } else if (creep.memory.role === 'repairer') {
+            repairer.run(creep);
         }
     }
 }
@@ -97,8 +104,6 @@ function assignTasks() {
  */
 function spawnCreep(role) {
     let body;
-    let energyRequired;
-    
     if (role === 'hauler') {
         body = [CARRY, CARRY, MOVE, MOVE];
     } else if (role === 'builder' || role === 'upgrader') {
@@ -107,15 +112,16 @@ function spawnCreep(role) {
         body = [TOUGH, ATTACK, MOVE, MOVE];
     } else if (role === 'claimer') {
         body = [CLAIM, MOVE];
+    } else if (role === 'repairer') {
+        body = [WORK, CARRY, MOVE];
     } else {
         body = [WORK, WORK, CARRY, MOVE]; // Example for harvester
     }
-    
-    energyRequired = _.sum(body, part => BODYPART_COST[part]);
+
     let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
     let spawnName = Game.spawns['Spawn1'];
-
     let energyAvailable = spawnName.room.energyAvailable;
+    let energyRequired = _.sum(body, part => BODYPART_COST[part]);
 
     if (energyAvailable >= energyRequired) {
         let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
