@@ -22,27 +22,34 @@ function runWorker(creep) {
     }
 
     if (creep.memory.working) {
-        let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
-        if (target) {
-            if (creep.build(target) === ERR_NOT_IN_RANGE) {
-                const path = getPath(creep.pos, target.pos);
-                creep.moveByPath(path);
-            }
-        } else {
-            createConstructionSites(creep.room);
-            let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax
-            });
-            if (repairTarget && creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
-                const path = getPath(creep.pos, repairTarget.pos);
-                creep.moveByPath(path);
-            } else {
-                let controller = creep.room.controller;
-                if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-                    const path = getPath(creep.pos, controller.pos);
+        if (creep.room.name === Game.spawns['Spawn1'].room.name) {
+            let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+            if (target) {
+                if (creep.build(target) === ERR_NOT_IN_RANGE) {
+                    const path = getPath(creep.pos, target.pos);
                     creep.moveByPath(path);
                 }
+            } else {
+                createConstructionSites(creep.room);
+                let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (structure) => structure.hits < structure.hitsMax
+                });
+                if (repairTarget && creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
+                    const path = getPath(creep.pos, repairTarget.pos);
+                    creep.moveByPath(path);
+                } else {
+                    let controller = creep.room.controller;
+                    if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+                        const path = getPath(creep.pos, controller.pos);
+                        creep.moveByPath(path);
+                    }
+                }
             }
+        } else {
+            // Return to home room if working
+            let exitDir = creep.room.findExitTo(Game.spawns['Spawn1'].room.name);
+            let exit = creep.pos.findClosestByRange(exitDir);
+            creep.moveTo(exit, { visualizePathStyle: { stroke: '#ffffff' } });
         }
     } else {
         let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
@@ -115,7 +122,7 @@ function createConstructionSites(room) {
 
     if (containerCount + containerSitesCount < maxContainers) {
         for (let x = room.controller.pos.x - 5; x <= room.controller.pos.x + 5; x++) {
-            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.x + 5; y++) {
+            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.y + 5; y++) {
                 if (room.createConstructionSite(x, y, STRUCTURE_CONTAINER) === OK) {
                     return true;
                 }
