@@ -1,6 +1,6 @@
-const worker = require('./roles/worker');
-const defender = require('./roles/defender');
-const claimer = require('./roles/claimer');
+const worker = require('worker');
+const defender = require('defender');
+const claimer = require('claimer');
 
 function assignTasks() {
     const tasks = [];
