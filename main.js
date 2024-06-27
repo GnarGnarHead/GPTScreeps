@@ -1,4 +1,5 @@
 const worker = require('./worker');
+const taskManager = require('./taskManager');
 
 // Constants to define desired numbers of each creep role
 const WORKER_COUNT = 10;
