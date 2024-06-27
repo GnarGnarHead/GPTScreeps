@@ -1,94 +1,46 @@
-const { assignTasks } = require('taskManager');
-const towers = require('towers');
-const roomManager = require('roomManager');
-const resourceManager = require('resourceManager');
+const roleWorker = require('worker');
+const roleDefender = require('defender');
+const roleClaimer = require('claimer');
+const { createOptimalConstructionSites } = require('construction');
 
 module.exports.loop = function () {
-    // Clear memory of dead creeps
-    for (let name in Memory.creeps) {
+    // Clean up memory of dead creeps
+    for (const name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
-            console.log('Clearing non-existing creep memory:', name);
         }
     }
 
-    // Manage each room
-    for (let roomName in Game.rooms) {
-        const room = Game.rooms[roomName];
-        roomManager.manageRoom(room);
-        resourceManager.allocateResources(room);
-    }
-
-    // Dynamically adjust creep counts based on resources and needs
-    const WORKER_COUNT = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker').length < 6 ? 8 : 6;
-    const DEFENDER_COUNT = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender').length < 2 ? 3 : 2;
-    const CLAIMER_COUNT = 1;
-    const MINIMUM_ENERGY_RESERVE = 300;
-
-    // Spawn new creeps based on priorities
-    const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker');
-    const defenders = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender');
-    const claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
-
-    if (Game.spawns['Spawn1'].room.energyAvailable >= MINIMUM_ENERGY_RESERVE) {
-        if (workers.length < WORKER_COUNT) {
-            spawnCreep('worker');
-        } else if (defenders.length < DEFENDER_COUNT) {
-            spawnCreep('defender');
-        } else if (claimers.length < CLAIMER_COUNT) {
-            spawnCreep('claimer');
+    // Assign roles to creeps
+    for (const name in Game.creeps) {
+        const creep = Game.creeps[name];
+        if (creep.memory.role === 'worker') {
+            roleWorker.run(creep);
+        } else if (creep.memory.role === 'defender') {
+            roleDefender.run(creep);
+        } else if (creep.memory.role === 'claimer') {
+            roleClaimer.run(creep);
         }
     }
 
-    // Assign tasks to creeps
-    try {
-        assignTasks();
-    } catch (error) {
-        console.log('Error in assignTasks:', error);
-    }
+    // Spawn new creeps as needed
+    const spawn = Game.spawns['Spawn1'];
+    if (spawn) {
+        const workerCount = _.filter(Game.creeps, creep => creep.memory.role === 'worker').length;
+        const defenderCount = _.filter(Game.creeps, creep => creep.memory.role === 'defender').length;
 
-    // Tower logic
-    try {
-        const towersArray = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
-        for (let t of towersArray) {
-            towers.run(t);
+        if (workerCount < 5) {
+            spawn.spawnCreep([WORK, CARRY, MOVE], `Worker${Game.time}`, { memory: { role: 'worker' } });
+        } else if (defenderCount < 2) {
+            spawn.spawnCreep([ATTACK, MOVE], `Defender${Game.time}`, { memory: { role: 'defender' } });
         }
-    } catch (error) {
-        console.log('Error in tower logic:', error);
-    }
-};
-
-/**
- * Function to spawn creeps based on role.
- * Ensures sufficient energy is available before spawning.
- * Logs appropriate messages based on success or failure.
- *
- * @param {string} role - The role of the creep to be spawned.
- */
-function spawnCreep(role) {
-    let body;
-    if (role === 'worker') {
-        body = [WORK, CARRY, MOVE];
-    } else if (role === 'defender') {
-        body = [TOUGH, ATTACK, MOVE, MOVE];
-    } else if (role === 'claimer') {
-        body = [CLAIM, MOVE];
     }
 
-    let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
-    let spawnName = Game.spawns['Spawn1'];
-    let energyAvailable = spawnName.room.energyAvailable;
-    let energyRequired = _.sum(body, part => BODYPART_COST[part]);
-
-    if (energyAvailable >= energyRequired) {
-        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false, target: 'W8N3' } });
-
-        if (result === OK) {
-            console.log('Spawning new ' + role + ': ' + newName);
-        } else {
-            console.log('Error spawning ' + role + ': ' + result);
+    // Periodically check and create construction sites
+    if (Game.time % 100 === 0) { // Adjust the frequency as needed
+        for (const roomName in Game.rooms) {
+            const room = Game.rooms[roomName];
+            createOptimalConstructionSites(room);
         }
-    } else {
-        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
     }
 }
