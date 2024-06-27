@@ -9,7 +9,7 @@ function manageConstructionAndRepairs(creep) {
         if (criticalRepairTarget) {
             if (creep.repair(criticalRepairTarget) === ERR_NOT_IN_RANGE) {
                 const path = getPath(creep.pos, criticalRepairTarget.pos);
-                creep.moveByPath(path);
+                creep.moveByPath(path, { visualizePathStyle: { stroke: '#ffaa00' } });
             }
             return;
         }
@@ -19,7 +19,7 @@ function manageConstructionAndRepairs(creep) {
         if (target) {
             if (creep.build(target) === ERR_NOT_IN_RANGE) {
                 const path = getPath(creep.pos, target.pos);
-                creep.moveByPath(path);
+                creep.moveByPath(path, { visualizePathStyle: { stroke: '#ffffff' } });
             }
             return;
         }
@@ -31,7 +31,7 @@ function manageConstructionAndRepairs(creep) {
         if (repairTarget) {
             if (creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
                 const path = getPath(creep.pos, repairTarget.pos);
-                creep.moveByPath(path);
+                creep.moveByPath(path, { visualizePathStyle: { stroke: '#ffaa00' } });
             }
             return;
         }
@@ -40,7 +40,7 @@ function manageConstructionAndRepairs(creep) {
         let controller = creep.room.controller;
         if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
             const path = getPath(creep.pos, controller.pos);
-            creep.moveByPath(path);
+            creep.moveByPath(path, { visualizePathStyle: { stroke: '#ffffff' } });
         }
     }
 }
