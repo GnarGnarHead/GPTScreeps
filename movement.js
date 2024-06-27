@@ -4,8 +4,9 @@ function moveTo(creep, target, visualize = false) {
 }
 
 function say(creep, message, frequency = 10) {
-    if (Game.time % frequency === 0) {
+    if (!creep.memory.lastSay || Game.time - creep.memory.lastSay > frequency) {
         creep.say(message, true); // The message will only be visible for one tick
+        creep.memory.lastSay = Game.time;
     }
 }
 
