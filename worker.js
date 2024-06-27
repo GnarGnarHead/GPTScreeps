@@ -38,6 +38,10 @@ function performTask(creep, task) {
         if (creep.upgradeController(task.target) === ERR_NOT_IN_RANGE) {
             creep.moveTo(task.target, { visualizePathStyle: { stroke: '#ffffff' } });
         }
+    } else if (task.type === 'haul') {
+        if (creep.transfer(task.target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(task.target, { visualizePathStyle: { stroke: '#ffffff' } });
+        }
     }
 }
 
