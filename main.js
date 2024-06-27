@@ -74,4 +74,6 @@ function spawnCreep(role) {
             console.log('Error spawning ' + role + ': ' + result);
         }
     } else {
-        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable
+        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
+    }
+}
