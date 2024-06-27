@@ -2,9 +2,9 @@ const { getPath } = require('cache');
 
 function manageConstructionAndRepairs(creep) {
     if (creep.memory.working) {
-        // Critical repairs first
+        // Critical repairs first (decaying structures like containers and roads)
         let criticalRepairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-            filter: (structure) => structure.hits < structure.hitsMax * 0.5 && (structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_ROAD)
+            filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_ROAD) && structure.hits < structure.hitsMax * 0.5
         });
         if (criticalRepairTarget) {
             if (creep.repair(criticalRepairTarget) === ERR_NOT_IN_RANGE) {
