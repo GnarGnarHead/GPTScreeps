@@ -1,4 +1,10 @@
-const taskManager = require('./taskManager');
+/**
+ * Worker Module
+ * 
+ * This module defines the behavior of worker creeps.
+ * Workers handle harvesting, upgrading, building, hauling, and repairing tasks.
+ * Additionally, they assist in defense during emergencies.
+ */
 
 function runWorker(creep) {
     if (creep.memory.working && creep.store[RESOURCE_ENERGY] === 0) {
@@ -10,12 +16,29 @@ function runWorker(creep) {
         creep.say('🚧 work');
     }
 
+    // Emergency defense logic
+    const hostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    if (hostile) {
+        if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+        }
+        return; // Skip other tasks if defending
+    }
+
     if (creep.memory.working) {
-        if (taskManager.hasTasks()) {
-            let task = taskManager.getTask();
-            performTask(creep, task);
+        let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+        if (target) {
+            if (creep.build(target) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
+            }
         } else {
-            performPriorityTask(creep);
+            createConstructionSites(creep.room);
+            let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                filter: (structure) => structure.hits < structure.hitsMax
+            });
+            if (repairTarget && creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(repairTarget, { visualizePathStyle: { stroke: '#ffaa00' } });
+            }
         }
     } else {
         let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
@@ -25,59 +48,41 @@ function runWorker(creep) {
     }
 }
 
-function performTask(creep, task) {
-    if (task.type === 'build') {
-        if (creep.build(task.target) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(task.target, { visualizePathStyle: { stroke: '#ffffff' } });
-        }
-    } else if (task.type === 'repair') {
-        if (creep.repair(task.target) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(task.target, { visualizePathStyle: { stroke: '#ffaa00' } });
-        }
-    } else if (task.type === 'upgrade') {
-        if (creep.upgradeController(task.target) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(task.target, { visualizePathStyle: { stroke: '#ffffff' } });
-        }
-    } else if (task.type === 'haul') {
-        if (creep.transfer(task.target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(task.target, { visualizePathStyle: { stroke: '#ffffff' } });
-        }
-    }
-}
+/**
+ * Function to create construction sites for containers and extensions if needed
+ *
+ * @param {Room} room - The room to create the construction site in.
+ */
+function createConstructionSites(room) {
+    const extensionCount = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_EXTENSION && structure.room.name === room.name).length;
+    const extensionSitesCount = _.filter(Game.constructionSites, (site) => site.structureType === STRUCTURE_EXTENSION && site.room.name === room.name).length;
+    const maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][room.controller.level];
 
-function performPriorityTask(creep) {
-    // Priority 1: Defend the colony
-    if (creep.memory.role === 'defender') {
-        let hostile = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS);
-        if (hostile) {
-            if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+    const containerCount = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_CONTAINER && structure.room.name === room.name).length;
+    const containerSitesCount = _.filter(Game.constructionSites, (site) => site.structureType === STRUCTURE_CONTAINER && site.room.name === room.name).length;
+    const maxContainers = CONTROLLER_STRUCTURES[STRUCTURE_CONTAINER][room.controller.level];
+
+    if (extensionCount + extensionSitesCount < maxExtensions) {
+        for (let x = room.controller.pos.x - 5; x <= room.controller.pos.x + 5; x++) {
+            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.y + 5; y++) {
+                if (room.createConstructionSite(x, y, STRUCTURE_EXTENSION) === OK) {
+                    return true;
+                }
             }
-            return;
         }
     }
 
-    // Priority 2: Build construction sites
-    let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
-    if (target) {
-        taskManager.addTask(2, 'build', target);
-        performTask(creep, taskManager.getTask());
-        return;
+    if (containerCount + containerSitesCount < maxContainers) {
+        for (let x = room.controller.pos.x - 5; x <= room.controller.pos.x + 5; x++) {
+            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.y + 5; y++) {
+                if (room.createConstructionSite(x, y, STRUCTURE_CONTAINER) === OK) {
+                    return true;
+                }
+            }
+        }
     }
 
-    // Priority 3: Repair structures
-    let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: (structure) => structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL
-    });
-    if (repairTarget) {
-        taskManager.addTask(3, 'repair', repairTarget);
-        performTask(creep, taskManager.getTask());
-        return;
-    }
-
-    // Priority 4: Upgrade controller
-    taskManager.addTask(4, 'upgrade', creep.room.controller);
-    performTask(creep, taskManager.getTask());
+    return false;
 }
 
 module.exports = { run: runWorker };
