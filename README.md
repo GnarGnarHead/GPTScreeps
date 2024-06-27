@@ -3,19 +3,24 @@
 ## Current Functionality
 
 ### Roles
-- **Harvester**: Gathers energy from sources and delivers it to spawns, extensions, and storage.
-- **Upgrader**: Collects energy and upgrades the room controller.
-- **Builder**: Constructs buildings and repairs structures. Automatically creates construction sites for extensions and containers if needed.
-- **Hauler**: Collects energy from containers, storage, and dropped resources, then transfers it to spawns, extensions, and towers.
-- **Defender**: Attacks hostile creeps to protect the colony.
+- **Worker**: Consolidates harvester, upgrader, builder, hauler, and repairer roles. Handles energy harvesting, upgrading, building, hauling, and repairing tasks.
+- **Defender**: Manages colony defense.
 - **Claimer**: Claims and reserves new rooms for expansion.
-- **Repairer**: Repairs damaged structures.
+- **Towers**: Automates tower defense and repairs.
 
 ### Main Loop (`main.js`)
 - Clears memory of dead creeps.
 - Spawns creeps based on priority and available energy.
 - Assigns tasks to creeps based on their roles.
 - Manages automated tower logic for defense and repairs.
+
+### Deprecated Roles
+- The following roles have been consolidated into the `Worker` role and moved to the `deprecated` folder:
+  - Harvester
+  - Upgrader
+  - Builder
+  - Hauler
+  - Repairer
 
 ## Future Development Goals
 
