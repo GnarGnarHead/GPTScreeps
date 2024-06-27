@@ -56,25 +56,26 @@ function assignTasks() {
 }
 
 function getTaskPriority(creep) {
-    if (creep.store.getFreeCapacity() > 0) {
-        return 1; // Harvesting
-    } else if (creep.store[RESOURCE_ENERGY] > 0) {
+    if (creep.memory.working) {
         let constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
         if (constructionSite) {
-            return 2; // Building
+            return 1; // Building
         }
         let structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: (structure) => structure.hits < structure.hitsMax
         });
         if (structure) {
-            return 3; // Repairing
+            return 2; // Repairing
         }
         let controller = creep.room.controller;
         if (controller) {
-            return 4; // Upgrading
+            return 3; // Upgrading
         }
     }
-    return 5; // Idle or Remote Mining
+    if (creep.store.getFreeCapacity() > 0) {
+        return 4; // Harvesting
+    }
+    return 5; // Remote Mining
 }
 
 function spawnCreep(role) {
