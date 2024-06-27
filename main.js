@@ -1,5 +1,5 @@
-const { assignTasks } = require('./taskManager');
-const towers = require('./towers');
+const { assignTasks } = require('taskManager');
+const towers = require('towers');
 
 // Constants for creep counts
 const WORKER_COUNT = 6;
@@ -24,7 +24,7 @@ module.exports.loop = function () {
     if (Game.spawns['Spawn1'].room.energyAvailable >= MINIMUM_ENERGY_RESERVE) {
         if (workers.length < WORKER_COUNT) {
             spawnCreep('worker');
-        } else if (defenders.length < DEFENDER_COUNT) {
+        } else if (defenders length < DEFENDER_COUNT) {
             spawnCreep('defender');
         } else if (claimers.length < CLAIMER_COUNT) {
             spawnCreep('claimer');
