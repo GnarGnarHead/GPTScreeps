@@ -1,50 +1,48 @@
-# Screeps Colony Scripts
 
-## Overview
+## Modules
 
-This repository contains scripts for managing a Screeps colony, including roles for workers, defenders, and claimers. The main goals are to optimize resource management, defense, and colony expansion.
-
-## Current Functionality
-
-### Roles
-
-- **Worker**: Handles harvesting, upgrading, building, repairing, and remote mining.
-- **Defender**: Manages colony defense.
-- **Claimer**: Claims and reserves new rooms for expansion.
-- **Towers**: Automates tower defense and repairs.
-
-### Main Loop (`main.js`)
-
+### main.js
 - Clears memory of dead creeps.
-- Spawns creeps based on priority and available energy.
-- Assigns tasks to creeps based on their roles.
-- Manages automated tower logic for defense and repairs.
+- Spawns creeps based on priorities.
+- Assigns tasks using taskManager.
+- Runs tower defense logic.
 
-### Task Prioritization
+### taskManager.js
+- Assigns tasks to creeps based on role.
+- Prioritizes tasks dynamically.
 
-Workers prioritize tasks in the following order:
-1. Building
-2. Repairing
-3. Upgrading
-4. Harvesting
-5. Remote Mining
+### towers.js
+- Manages tower behavior for attacking hostiles and repairing structures.
+
+### cache.js
+- Provides path caching to optimize CPU usage.
+
+### construction.js
+- Manages the creation of construction sites for extensions and containers.
+
+### worker.js
+- Consolidates harvesting, upgrading, building, repairing, hauling, and remote mining tasks.
+- Includes emergency defense logic.
+
+### defender.js
+- Manages defender creep behavior for attacking hostiles.
+
+### claimer.js
+- Manages claimer creep behavior for claiming new rooms.
 
 ## Future Development Goals
 
-### Performance Optimization
+1. **Performance Optimization**:
+   - Implement advanced path caching.
+   - Optimize task management efficiency.
 
-- **Path Caching**: Implement caching for frequently used paths to reduce CPU usage.
-- **Task Efficiency**: Optimize task management to minimize idle time for creeps.
+2. **Defense Enhancements**:
+   - Improve defender AI.
+   - Coordinate multiple towers for better defense.
 
-### Defense Enhancements
-
-- **Advanced AI for Defenders**: Enhance the logic for defenders to handle various threats more effectively.
-- **Defensive Structures**: Plan and construct walls, ramparts, and additional towers.
-
-### Scalability
-
-- **Remote Mining**: Develop creeps and logic for mining in remote rooms.
-- **Room Expansion**: Improve claiming and management of additional rooms.
+3. **Room Expansion**:
+   - Implement remote mining operations.
+   - Develop logic for claiming and managing additional rooms.
 
 ## Setup Instructions
 
