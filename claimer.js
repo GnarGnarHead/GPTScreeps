@@ -1,10 +1,30 @@
+const { moveTo } = require('movement');
+
 function run(creep) {
-    if (creep.room.name !== creep.memory.target) {
-        const exit = creep.room.findExitTo(creep.memory.target);
-        creep.moveTo(creep.pos.findClosestByRange(exit));
+    if (creep.memory.claiming && creep.store[RESOURCE_ENERGY] === 0) {
+        creep.memory.claiming = false;
+        creep.say('🔄 harvest');
+    }
+    if (!creep.memory.claiming && creep.store.getFreeCapacity() === 0) {
+        creep.memory.claiming = true;
+        creep.say('🏴 claim');
+    }
+
+    if (creep.memory.claiming) {
+        const targetRoom = 'W8N3'; // Replace with your target room
+        if (creep.room.name !== targetRoom) {
+            let exitDir = creep.room.findExitTo(targetRoom);
+            let exit = creep.pos.findClosestByRange(exitDir);
+            moveTo(creep, exit);
+        } else {
+            if (creep.claimController(creep.room.controller) === ERR_NOT_IN_RANGE) {
+                moveTo(creep, creep.room.controller);
+            }
+        }
     } else {
-        if (creep.claimController(creep.room.controller) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(creep.room.controller);
+        let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+        if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
+            moveTo(creep, source);
         }
     }
 }
