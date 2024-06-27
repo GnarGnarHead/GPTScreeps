@@ -9,7 +9,6 @@ const CLAIMER_COUNT = 1;
 const MINIMUM_ENERGY_RESERVE = 300;
 
 module.exports.loop = function () {
-    // Clear memory of dead creeps
     for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
@@ -63,7 +62,7 @@ function getTaskPriority(creep) {
             return 1; // Building
         }
         let structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-            filter: (structure) => structure.hits < structure.hitsMax
+            filter: (structure) => structure.hits < structure.hitsMax && structure.hits < 0.9 * structure.hitsMax
         });
         if (structure) {
             return 2; // Repairing
