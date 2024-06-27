@@ -54,5 +54,4 @@ function transferEnergy(creep) {
     }
 }
 
-
 module.exports = { run: runHauler };
