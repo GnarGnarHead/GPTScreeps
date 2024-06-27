@@ -3,11 +3,9 @@ const defender = require('./defender');
 const claimer = require('./claimer');
 const towers = require('./towers');
 
-// Constants for creep counts
 const WORKER_COUNT = 6;
 const DEFENDER_COUNT = 2;
 const CLAIMER_COUNT = 1;
-
 const MINIMUM_ENERGY_RESERVE = 300;
 
 module.exports.loop = function () {
@@ -76,7 +74,7 @@ function getTaskPriority(creep) {
             return 4; // Upgrading
         }
     }
-    return 5; // Idle
+    return 5; // Idle or Remote Mining
 }
 
 function spawnCreep(role) {
@@ -95,14 +93,4 @@ function spawnCreep(role) {
     let energyRequired = _.sum(body, part => BODYPART_COST[part]);
 
     if (energyAvailable >= energyRequired) {
-        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
-
-        if (result === OK) {
-            console.log('Spawning new ' + role + ': ' + newName);
-        } else {
-            console.log('Error spawning ' + role + ': ' + result);
-        }
-    } else {
-        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
-    }
-}
+        let result = spawnName.spawnCreep(body, newName, {
