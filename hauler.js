@@ -2,7 +2,7 @@
  * Hauler Module
  * 
  * This module defines the behavior of hauler creeps.
- * Haulers collect energy from sources, containers, or dropped resources and transfer it to spawns, extensions, and storage.
+ * Haulers collect energy from sources, containers, storage, dropped resources, or directly from harvesters and transfer it to spawns, extensions, and storage.
  * When not needed for primary tasks, haulers assist in upgrading, building, and delivering energy to builders.
  */
 
@@ -20,8 +20,14 @@ function runHauler(creep) {
             });
         }
 
+        if (!source) {
+            source = creep.pos.findClosestByPath(FIND_MY_CREEPS, {
+                filter: (otherCreep) => otherCreep.memory.role === 'harvester' && otherCreep.store[RESOURCE_ENERGY] > 0
+            });
+        }
+
         if (source) {
-            if (creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE || creep.pickup(source) === ERR_NOT_IN_RANGE) {
+            if (creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE || creep.pickup(source) === ERR_NOT_IN_RANGE || creep.harvest(source) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
             }
         } else {
