@@ -1,19 +1,32 @@
-const { moveTo, say } = require('movement');
-
 function run(creep) {
-    const hostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    if (creep.hits < creep.hitsMax * 0.5) {
+        // Retreat if health is low
+        const rallyPoint = new RoomPosition(25, 25, creep.room.name); // Adjust coordinates as needed
+        creep.moveTo(rallyPoint);
+        return;
+    }
+
+    const hostile = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
+        filter: (hostile) => hostile.getActiveBodyparts(ATTACK) > 0 || hostile.getActiveBodyparts(RANGED_ATTACK) > 0
+    });
+
     if (hostile) {
-        say(creep, '⚔️ attack');
         if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-            moveTo(creep, hostile);
-        } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
-            moveTo(creep, hostile);
+            creep.moveTo(hostile);
         }
     } else {
-        // Patrol or idle logic here
-        let patrolPoint = Game.flags.Patrol; // Example patrol point
-        if (patrolPoint) {
-            moveTo(creep, patrolPoint);
+        const healer = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
+            filter: (hostile) => hostile.getActiveBodyparts(HEAL) > 0
+        });
+
+        if (healer) {
+            if (creep.attack(healer) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(healer);
+            }
+        } else {
+            // Patrol if no hostiles are present
+            const rallyPoint = new RoomPosition(25, 25, creep.room.name); // Adjust coordinates as needed
+            creep.moveTo(rallyPoint);
         }
     }
 }
