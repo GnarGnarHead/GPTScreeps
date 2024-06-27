@@ -3,12 +3,6 @@ const towers = require('towers');
 const roomManager = require('roomManager');
 const resourceManager = require('resourceManager');
 
-// Constants for creep counts
-const WORKER_COUNT = 6;
-const DEFENDER_COUNT = 2;
-const CLAIMER_COUNT = 1;
-const MINIMUM_ENERGY_RESERVE = 300;
-
 module.exports.loop = function () {
     // Clear memory of dead creeps
     for (let name in Memory.creeps) {
@@ -24,6 +18,12 @@ module.exports.loop = function () {
         roomManager.manageRoom(room);
         resourceManager.allocateResources(room);
     }
+
+    // Dynamically adjust creep counts based on resources and needs
+    const WORKER_COUNT = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker').length < 6 ? 8 : 6;
+    const DEFENDER_COUNT = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender').length < 2 ? 3 : 2;
+    const CLAIMER_COUNT = 1;
+    const MINIMUM_ENERGY_RESERVE = 300;
 
     // Spawn new creeps based on priorities
     const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker');
