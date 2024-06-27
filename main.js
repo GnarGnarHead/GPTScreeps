@@ -58,10 +58,17 @@ function spawnCreep(role) {
     let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
     let spawnName = Game.spawns['Spawn1'];
 
-    let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
-    if (result === OK) {
-        console.log('Spawning new ' + role + ': ' + newName);
+    let energyAvailable = spawnName.room.energyAvailable;
+    let energyRequired = _.sum(body, part => BODYPART_COST[part]);
+
+    if (energyAvailable >= energyRequired) {
+        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
+        if (result === OK) {
+            console.log('Spawning new ' + role + ': ' + newName);
+        } else {
+            console.log('Error spawning ' + role + ': ' + result);
+        }
     } else {
-        console.log('Error spawning ' + role + ': ' + result);
+        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
     }
 }
