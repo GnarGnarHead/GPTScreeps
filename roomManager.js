@@ -16,12 +16,43 @@ function manageRoom(room) {
 
 function createConstructionSites(room) {
     try {
-        const extensionCount = _.filter(Game.structures, (structure) => structure && structure.structureType === STRUCTURE_EXTENSION && structure.room.name === room.name).length;
-        const extensionSitesCount = _.filter(Game.constructionSites, (site) => site && site.structureType === STRUCTURE_EXTENSION && site.room.name === room.name).length;
+        const structures = Game.structures;
+        const constructionSites = Game.constructionSites;
+
+        const extensionCount = _.filter(structures, (structure) => {
+            if (!structure || !structure.structureType || !structure.room || !structure.room.name) {
+                console.log('Undefined structure in extensionCount:', JSON.stringify(structure));
+                return false;
+            }
+            return structure.structureType === STRUCTURE_EXTENSION && structure.room.name === room.name;
+        }).length;
+
+        const extensionSitesCount = _.filter(constructionSites, (site) => {
+            if (!site || !site.structureType || !site.room || !site.room.name) {
+                console.log('Undefined site in extensionSitesCount:', JSON.stringify(site));
+                return false;
+            }
+            return site.structureType === STRUCTURE_EXTENSION && site.room.name === room.name;
+        }).length;
+
         const maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][room.controller.level];
 
-        const containerCount = _.filter(Game.structures, (structure) => structure && structure.structureType === STRUCTURE_CONTAINER && structure.room.name === room.name).length;
-        const containerSitesCount = _.filter(Game.constructionSites, (site) => site && site.structureType === STRUCTURE_CONTAINER && site.room.name === room.name).length;
+        const containerCount = _.filter(structures, (structure) => {
+            if (!structure || !structure.structureType || !structure.room || !structure.room.name) {
+                console.log('Undefined structure in containerCount:', JSON.stringify(structure));
+                return false;
+            }
+            return structure.structureType === STRUCTURE_CONTAINER && structure.room.name === room.name;
+        }).length;
+
+        const containerSitesCount = _.filter(constructionSites, (site) => {
+            if (!site || !site.structureType || !site.room || !site.room.name) {
+                console.log('Undefined site in containerSitesCount:', JSON.stringify(site));
+                return false;
+            }
+            return site.structureType === STRUCTURE_CONTAINER && site.room.name === room.name;
+        }).length;
+
         const maxContainers = CONTROLLER_STRUCTURES[STRUCTURE_CONTAINER][room.controller.level];
 
         if (extensionCount + extensionSitesCount < maxExtensions) {
