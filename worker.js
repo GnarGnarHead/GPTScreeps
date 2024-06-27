@@ -1,5 +1,5 @@
 const { manageConstructionAndRepairs } = require('construction');
-const { moveTo, say } = require('movement');
+const { moveTo, say, moveToRandomNearbyPos } = require('movement');
 
 function run(creep) {
     if (creep.memory.working && creep.store[RESOURCE_ENERGY] === 0) {
@@ -26,8 +26,10 @@ function harvestAndTransport(creep) {
             const source = creep.pos.findClosestByPath(sources, {
                 filter: (source) => source.energy > 0 && creep.room.lookForAt(LOOK_CREEPS, source.pos).length < 2
             });
-            if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                moveTo(creep, source);
+            if (source) {
+                if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
+                    moveToRandomNearbyPos(creep, source);
+                }
             }
         }
     } else {
