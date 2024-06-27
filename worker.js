@@ -15,9 +15,9 @@ function run(creep) {
     if (hostile) {
         creep.say('⚔️ defend');
         if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+            creep.moveTo(hostile);
         } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+            creep.moveTo(hostile);
         }
         return; // Skip other tasks if defending
     }
@@ -30,13 +30,13 @@ function run(creep) {
             // Return to home room if working
             let exitDir = creep.room.findExitTo(Game.spawns['Spawn1'].room.name);
             let exit = creep.pos.findClosestByRange(exitDir);
-            creep.moveTo(exit, { visualizePathStyle: { stroke: '#ffffff' } });
+            creep.moveTo(exit);
         }
     } else {
         creep.say('⛏️ harvest');
         let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+            creep.moveTo(source);
         } else {
             runRemoteMining(creep);
         }
@@ -45,6 +45,7 @@ function run(creep) {
 
 function runRemoteMining(creep) {
     const targetRoomName = 'W8N3'; // Replace with your target remote room
+
     if (creep.memory.remoteMining && creep.store.getFreeCapacity() === 0) {
         creep.memory.remoteMining = false;
     }
@@ -57,11 +58,11 @@ function runRemoteMining(creep) {
         if (creep.room.name !== targetRoomName) {
             let exitDir = creep.room.findExitTo(targetRoomName);
             let exit = creep.pos.findClosestByRange(exitDir);
-            creep.moveTo(exit, { visualizePathStyle: { stroke: '#ffaa00' } });
+            creep.moveTo(exit);
         } else {
             let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
             if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+                creep.moveTo(source);
             }
         }
     } else {
@@ -69,7 +70,7 @@ function runRemoteMining(creep) {
         if (creep.room.name !== Game.spawns['Spawn1'].room.name) {
             let exitDir = creep.room.findExitTo(Game.spawns['Spawn1'].room.name);
             let exit = creep.pos.findClosestByRange(exitDir);
-            creep.moveTo(exit, { visualizePathStyle: { stroke: '#ffffff' } });
+            creep.moveTo(exit);
         } else {
             let storage = Game.spawns['Spawn1'].pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (structure) => (structure.structureType === STRUCTURE_SPAWN ||
@@ -78,7 +79,7 @@ function runRemoteMining(creep) {
                                         structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0
             });
             if (storage && creep.transfer(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(storage, { visualizePathStyle: { stroke: '#ffffff' } });
+                creep.moveTo(storage);
             }
         }
     }
