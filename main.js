@@ -2,14 +2,11 @@ const harvester = require('./harvester');
 const upgrader = require('./upgrader');
 const builder = require('./builder');
 
-// Constants for desired number of each type of creep
 const HARVESTER_COUNT = 2;
 const UPGRADER_COUNT = 1;
 const BUILDER_COUNT = 1;
 
-// Main game loop
 module.exports.loop = function () {
-    // Clear memory of dead creeps
     for(let name in Memory.creeps) {
         if(!Game.creeps[name]) {
             delete Memory.creeps[name];
@@ -17,7 +14,6 @@ module.exports.loop = function () {
         }
     }
 
-    // Creep spawning logic
     const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role === 'harvester');
     const upgraders = _.filter(Game.creeps, (creep) => creep.memory.role === 'upgrader');
     const builders = _.filter(Game.creeps, (creep) => creep.memory.role === 'builder');
@@ -32,7 +28,6 @@ module.exports.loop = function () {
         spawnCreep('builder');
     }
 
-    // Assign tasks based on role
     for(let name in Game.creeps) {
         let creep = Game.creeps[name];
         if(creep.memory.role === 'harvester') {
@@ -45,7 +40,6 @@ module.exports.loop = function () {
     }
 };
 
-// Function to spawn creeps
 function spawnCreep(role) {
     let body = [WORK, CARRY, MOVE];
     let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
