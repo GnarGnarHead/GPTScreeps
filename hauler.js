@@ -1,85 +1,76 @@
 /**
- * Builder Module
+ * Hauler Module
  * 
- * This module defines the behavior of builder creeps.
- * Builders construct buildings and repair structures when there are no construction sites.
+ * This module defines the behavior of hauler creeps.
+ * Haulers collect energy from sources, containers, or dropped resources and transfer it to spawns, extensions, and storage.
+ * When not needed for primary tasks, haulers assist in upgrading, building, and delivering energy to builders.
  */
 
-function runBuilder(creep) {
-    if (creep.memory.working && creep.store[RESOURCE_ENERGY] === 0) {
-        creep.memory.working = false;
-        creep.say('🔄 harvest');
-    }
-    if (!creep.memory.working && creep.store.getFreeCapacity() === 0) {
-        creep.memory.working = true;
-        creep.say('🚧 build');
-    }
-
-    if (creep.memory.working) {
-        let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES, {
-            filter: (site) => site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_EXTENSION
+function runHauler(creep) {
+    if (creep.store[RESOURCE_ENERGY] === 0) {
+        let source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER ||
+                                    structure.structureType === STRUCTURE_STORAGE) &&
+                                    structure.store[RESOURCE_ENERGY] > 0
         });
 
-        if (!target) {
-            target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+        if (!source) {
+            source = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES, {
+                filter: (resource) => resource.resourceType === RESOURCE_ENERGY
+            });
         }
 
+        if (source) {
+            if (creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE || creep.pickup(source) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+            }
+        } else {
+            console.log(`${creep.name} could not find a source to withdraw from.`);
+        }
+    } else {
+        let target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => (structure.structureType === STRUCTURE_SPAWN ||
+                                    structure.structureType === STRUCTURE_EXTENSION ||
+                                    structure.structureType === STRUCTURE_TOWER ||
+                                    structure.structureType === STRUCTURE_STORAGE) &&
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+        });
+
         if (target) {
-            if (creep.build(target) === ERR_NOT_IN_RANGE) {
+            if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
             }
         } else {
-            createConstructionSites(creep.room);
-            let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax
-            });
-            if (repairTarget && creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(repairTarget, { visualizePathStyle: { stroke: '#ffaa00' } });
-            }
+            console.log(`${creep.name} could not find a target to transfer energy to. Engaging in secondary tasks.`);
+            assistWithOtherTasks(creep);
+        }
+    }
+}
+
+function assistWithOtherTasks(creep) {
+    let constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+    if (constructionSite) {
+        console.log(`${creep.name} found a construction site: ${constructionSite.structureType}`);
+        if (creep.build(constructionSite) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(constructionSite, { visualizePathStyle: { stroke: '#ffffff' } });
         }
     } else {
-        let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-        if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+        console.log(`${creep.name} found no construction sites. Attempting to repair structures.`);
+        let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL
+        });
+        if (repairTarget) {
+            console.log(`${creep.name} found a structure to repair: ${repairTarget.structureType}`);
+            if (creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(repairTarget, { visualizePathStyle: { stroke: '#ffaa00' } });
+            }
+        } else {
+            console.log(`${creep.name} found no structures to repair. Upgrading controller.`);
+            if (creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(creep.room.controller, { visualizePathStyle: { stroke: '#ffffff' } });
+            }
         }
     }
 }
 
-/**
- * Function to create construction sites for containers and extensions if needed
- *
- * @param {Room} room - The room to create the construction site in.
- */
-function createConstructionSites(room) {
-    const extensionCount = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_EXTENSION && structure.room.name === room.name).length;
-    const extensionSitesCount = _.filter(Game.constructionSites, (site) => site.structureType === STRUCTURE_EXTENSION && site.room.name === room.name).length;
-    const maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][room.controller.level];
-
-    const containerCount = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_CONTAINER && structure.room.name === room.name).length;
-    const containerSitesCount = _.filter(Game.constructionSites, (site) => site.structureType === STRUCTURE_CONTAINER && site.room.name === room.name).length;
-    const maxContainers = CONTROLLER_STRUCTURES[STRUCTURE_CONTAINER][room.controller.level];
-
-    if (extensionCount + extensionSitesCount < maxExtensions) {
-        for (let x = room.controller.pos.x - 5; x <= room.controller.pos.x + 5; x++) {
-            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.y + 5; y++) {
-                if (room.createConstructionSite(x, y, STRUCTURE_EXTENSION) === OK) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    if (containerCount + containerSitesCount < maxContainers) {
-        for (let x = room.controller.pos.x - 5; x <= room.controller.pos.x + 5; x++) {
-            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.y + 5; y++) {
-                if (room.createConstructionSite(x, y, STRUCTURE_CONTAINER) === OK) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-module.exports = { run: runBuilder };
+module.exports = { run: runHauler };
