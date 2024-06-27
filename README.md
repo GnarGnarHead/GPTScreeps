@@ -1,4 +1,4 @@
-# Screeps Colony Management
+**# Screeps Colony Management
 
 ## Overview
 This repository contains scripts for managing a Screeps colony. The code is modularized to handle different aspects of colony management, including creep roles, resource management, and construction.
@@ -38,3 +38,4 @@ Feel free to submit pull requests to improve the scripts or add new features.
 
 ## License
 This project is licensed under the MIT License.
+**
