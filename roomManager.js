@@ -16,11 +16,11 @@ function manageRoom(room) {
 
 function createConstructionSites(room) {
     try {
-        const structures = Game.structures;
-        const constructionSites = Game.constructionSites;
+        const structures = room.find(FIND_STRUCTURES);
+        const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
 
         const extensionCount = _.filter(structures, (structure) => {
-            if (!structure || !structure.structureType || !structure.room || !structure.room.name) {
+            if (!structure || !structure.structureType || !structure.room) {
                 console.log('Undefined structure in extensionCount:', JSON.stringify(structure));
                 return false;
             }
@@ -28,7 +28,7 @@ function createConstructionSites(room) {
         }).length;
 
         const extensionSitesCount = _.filter(constructionSites, (site) => {
-            if (!site || !site.structureType || !site.room || !site.room.name) {
+            if (!site || !site.structureType || !site.room) {
                 console.log('Undefined site in extensionSitesCount:', JSON.stringify(site));
                 return false;
             }
@@ -38,7 +38,7 @@ function createConstructionSites(room) {
         const maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][room.controller.level];
 
         const containerCount = _.filter(structures, (structure) => {
-            if (!structure || !structure.structureType || !structure.room || !structure.room.name) {
+            if (!structure || !structure.structureType || !structure.room) {
                 console.log('Undefined structure in containerCount:', JSON.stringify(structure));
                 return false;
             }
@@ -46,7 +46,7 @@ function createConstructionSites(room) {
         }).length;
 
         const containerSitesCount = _.filter(constructionSites, (site) => {
-            if (!site || !site.structureType || !site.room || !site.room.name) {
+            if (!site || !site.structureType || !site.room) {
                 console.log('Undefined site in containerSitesCount:', JSON.stringify(site));
                 return false;
             }
