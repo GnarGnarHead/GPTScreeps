@@ -1,25 +1,21 @@
-/**
- * Defender Module
- * 
- * This module defines the behavior of defender creeps.
- * Defenders prioritize attacking the highest threat targets.
- */
+const { moveTo } = require('movement');
 
-function runDefender(creep) {
+function run(creep) {
     const hostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     if (hostile) {
+        creep.say('⚔️ attack');
         if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+            moveTo(creep, hostile);
         } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+            moveTo(creep, hostile);
         }
     } else {
-        // Patrol or move to a designated defensive position if no hostiles
-        const patrolPoints = creep.room.find(FIND_FLAGS, { filter: flag => flag.color === COLOR_RED });
-        if (patrolPoints.length > 0) {
-            creep.moveTo(patrolPoints[0], { visualizePathStyle: { stroke: '#00ff00' } });
+        // Patrol or idle logic here
+        let patrolPoint = Game.flags.Patrol; // Example patrol point
+        if (patrolPoint) {
+            moveTo(creep, patrolPoint);
         }
     }
 }
 
-module.exports = { run: runDefender };
+module.exports = { run };
