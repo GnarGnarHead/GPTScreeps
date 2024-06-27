@@ -1,56 +1,38 @@
+/**
+ * Hauler Module
+ * 
+ * This module defines the behavior of hauler creeps.
+ * Haulers collect energy from sources or containers and transfer it to spawns, extensions, and storage.
+ */
+
 function runHauler(creep) {
-    if (creep.memory.working && creep.store[RESOURCE_ENERGY] === 0) {
-        creep.memory.working = false;
-        creep.say('🔄 collect');
-    }
-    if (!creep.memory.working && creep.store.getFreeCapacity() === 0) {
-        creep.memory.working = true;
-        creep.say('🚚 transfer');
-    }
-
-    if (creep.memory.working) {
-        transferEnergy(creep);
-    } else {
-        collectEnergy(creep);
-    }
-}
-
-function collectEnergy(creep) {
-    let target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: (structure) => {
-            return (structure.structureType === STRUCTURE_CONTAINER ||
-                    structure.structureType === STRUCTURE_STORAGE) &&
-                   structure.store[RESOURCE_ENERGY] > 0;
-        }
-    });
-
-    if (target && creep.withdraw(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(target, { visualizePathStyle: { stroke: '#ffaa00' } });
-    }
-}
-
-function transferEnergy(creep) {
-    let target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: (structure) => {
-            return (structure.structureType === STRUCTURE_SPAWN ||
-                    structure.structureType === STRUCTURE_EXTENSION) &&
-                   structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-        }
-    });
-
-    if (!target) {
-        target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return (structure.structureType === STRUCTURE_TOWER ||
-                        structure.structureType === STRUCTURE_CONTAINER ||
-                        structure.structureType === STRUCTURE_STORAGE) &&
-                       structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-            }
+    if (creep.store[RESOURCE_ENERGY] === 0) {
+        let source = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER ||
+                                    structure.structureType === STRUCTURE_STORAGE) &&
+                                    structure.store[RESOURCE_ENERGY] > 0
         });
-    }
-
-    if (target && creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-        creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
+        if (source) {
+            if (creep.withdraw(source, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+            }
+        } else {
+            console.log(`${creep.name} could not find a source to withdraw from.`);
+        }
+    } else {
+        let target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => (structure.structureType === STRUCTURE_SPAWN ||
+                                    structure.structureType === STRUCTURE_EXTENSION ||
+                                    structure.structureType === STRUCTURE_TOWER) &&
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+        });
+        if (target) {
+            if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
+            }
+        } else {
+            console.log(`${creep.name} could not find a target to transfer energy to.`);
+        }
     }
 }
 
