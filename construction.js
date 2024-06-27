@@ -1,5 +1,5 @@
 const { getPath } = require('cache');
-const { moveTo } = require('movement');
+const { moveTo, say } = require('movement');
 
 function manageConstructionAndRepairs(creep) {
     if (creep.memory.working) {
@@ -8,7 +8,7 @@ function manageConstructionAndRepairs(creep) {
             filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_ROAD) && structure.hits < structure.hitsMax * 0.5
         });
         if (criticalRepairTarget) {
-            creep.say('🔧 repair');
+            say(creep, '🔧 repair');
             if (creep.repair(criticalRepairTarget) === ERR_NOT_IN_RANGE) {
                 moveTo(creep, criticalRepairTarget);
             }
@@ -18,7 +18,7 @@ function manageConstructionAndRepairs(creep) {
         // Then construction
         let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
         if (target) {
-            creep.say('🚧 build');
+            say(creep, '🚧 build');
             if (creep.build(target) === ERR_NOT_IN_RANGE) {
                 moveTo(creep, target);
             }
@@ -30,7 +30,7 @@ function manageConstructionAndRepairs(creep) {
             filter: (structure) => structure.hits < structure.hitsMax
         });
         if (repairTarget) {
-            creep.say('🔨 repair');
+            say(creep, '🔨 repair');
             if (creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
                 moveTo(creep, repairTarget);
             }
@@ -40,7 +40,7 @@ function manageConstructionAndRepairs(creep) {
         // Finally, upgrade the controller
         let controller = creep.room.controller;
         if (controller) {
-            creep.say('⚡ upgrade');
+            say(creep, '⚡ upgrade');
             if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
                 moveTo(creep, controller);
             }
