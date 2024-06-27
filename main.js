@@ -2,16 +2,15 @@ const roleWorker = require('worker');
 const roleDefender = require('defender');
 const roleClaimer = require('claimer');
 const { createOptimalConstructionSites } = require('construction');
+const { manageResources } = require('resourceManager');
 
 module.exports.loop = function () {
-    // Clean up memory of dead creeps
     for (const name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
         }
     }
 
-    // Assign roles to creeps
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
         if (creep.memory.role === 'worker') {
@@ -23,7 +22,6 @@ module.exports.loop = function () {
         }
     }
 
-    // Spawn new creeps as needed
     const spawn = Game.spawns['Spawn1'];
     if (spawn) {
         const workerCount = _.filter(Game.creeps, creep => creep.memory.role === 'worker').length;
@@ -36,11 +34,11 @@ module.exports.loop = function () {
         }
     }
 
-    // Periodically check and create construction sites
     if (Game.time % 100 === 0) { // Adjust the frequency as needed
         for (const roomName in Game.rooms) {
             const room = Game.rooms[roomName];
             createOptimalConstructionSites(room);
+            manageResources(room);
         }
     }
 }
