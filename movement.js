@@ -3,4 +3,8 @@ function moveTo(creep, target, visualize = false) {
     creep.moveTo(target, pathStyle);
 }
 
-module.exports = { moveTo };
+function say(creep, message, duration = 3) {
+    creep.say(message, duration);
+}
+
+module.exports = { moveTo, say };
