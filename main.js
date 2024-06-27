@@ -3,21 +3,14 @@ const defender = require('./defender');
 const claimer = require('./claimer');
 const towers = require('./towers');
 
-// Constants to define desired numbers of each creep role
-const WORKER_COUNT = 6; // Combined count of harvester, upgrader, builder, hauler, repairer roles
+// Constants for creep counts
+const WORKER_COUNT = 6;
 const DEFENDER_COUNT = 2;
 const CLAIMER_COUNT = 1;
 
-// Minimum energy reserve to ensure critical creeps can be spawned
 const MINIMUM_ENERGY_RESERVE = 300;
 
-/**
- * Main game loop function.
- * Clears memory of dead creeps, manages spawning based on defined priorities,
- * and assigns tasks to creeps based on their roles.
- */
 module.exports.loop = function () {
-    // Clear memory of dead creeps
     for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
@@ -25,12 +18,10 @@ module.exports.loop = function () {
         }
     }
 
-    // Filter creeps by their roles
     const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker');
     const defenders = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender');
     const claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
 
-    // Check if there is enough energy to spawn a new creep
     if (Game.spawns['Spawn1'].room.energyAvailable >= MINIMUM_ENERGY_RESERVE) {
         if (workers.length < WORKER_COUNT) {
             spawnCreep('worker');
@@ -41,39 +32,53 @@ module.exports.loop = function () {
         }
     }
 
-    // Assign tasks to creeps based on their roles
     assignTasks();
 
-    // Tower logic
     const towersArray = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
     for (let t of towersArray) {
         towers.run(t);
     }
 };
 
-/**
- * Function to assign tasks to creeps based on their roles.
- */
 function assignTasks() {
+    const tasks = [];
     for (let name in Game.creeps) {
         let creep = Game.creeps[name];
         if (creep.memory.role === 'worker') {
-            worker.run(creep);
+            tasks.push({ creep: creep, priority: getTaskPriority(creep) });
         } else if (creep.memory.role === 'defender') {
             defender.run(creep);
         } else if (creep.memory.role === 'claimer') {
             claimer.run(creep);
         }
     }
+
+    tasks.sort((a, b) => a.priority - b.priority);
+    tasks.forEach(task => worker.run(task.creep));
 }
 
-/**
- * Function to spawn creeps based on role.
- * Ensures sufficient energy is available before spawning.
- * Logs appropriate messages based on success or failure.
- *
- * @param {string} role - The role of the creep to be spawned.
- */
+function getTaskPriority(creep) {
+    if (creep.store.getFreeCapacity() > 0) {
+        return 1; // Harvesting
+    } else if (creep.store[RESOURCE_ENERGY] > 0) {
+        let constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+        if (constructionSite) {
+            return 2; // Building
+        }
+        let structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => structure.hits < structure.hitsMax
+        });
+        if (structure) {
+            return 3; // Repairing
+        }
+        let controller = creep.room.controller;
+        if (controller) {
+            return 4; // Upgrading
+        }
+    }
+    return 5; // Idle
+}
+
 function spawnCreep(role) {
     let body;
     if (role === 'worker') {
