@@ -1,4 +1,5 @@
 const { getPath } = require('cache');
+const { moveTo } = require('movement');
 
 function manageConstructionAndRepairs(creep) {
     if (creep.memory.working) {
@@ -9,7 +10,7 @@ function manageConstructionAndRepairs(creep) {
         if (criticalRepairTarget) {
             creep.say('🔧 repair');
             if (creep.repair(criticalRepairTarget) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(criticalRepairTarget);
+                moveTo(creep, criticalRepairTarget);
             }
             return;
         }
@@ -19,7 +20,7 @@ function manageConstructionAndRepairs(creep) {
         if (target) {
             creep.say('🚧 build');
             if (creep.build(target) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
+                moveTo(creep, target);
             }
             return;
         }
@@ -31,7 +32,7 @@ function manageConstructionAndRepairs(creep) {
         if (repairTarget) {
             creep.say('🔨 repair');
             if (creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(repairTarget);
+                moveTo(creep, repairTarget);
             }
             return;
         }
@@ -41,7 +42,7 @@ function manageConstructionAndRepairs(creep) {
         if (controller) {
             creep.say('⚡ upgrade');
             if (creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-                creep.moveTo(controller);
+                moveTo(creep, controller);
             }
         }
     }
