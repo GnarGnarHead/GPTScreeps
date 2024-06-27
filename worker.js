@@ -1,4 +1,4 @@
-const { getPath } = require('./cache');
+const { getPath } = require('cache');
 
 function runWorker(creep) {
     if (creep.memory.working && creep.store[RESOURCE_ENERGY] === 0) {
@@ -18,9 +18,10 @@ function runWorker(creep) {
         } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
             creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
         }
-        return;
+        return; // Skip other tasks if defending
     }
 
+    // Regular tasks
     if (creep.memory.working) {
         if (creep.room.name === Game.spawns['Spawn1'].room.name) {
             let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
