@@ -3,7 +3,7 @@
 ## Current Functionality
 
 ### Roles
-- **Worker**: Consolidates harvester, upgrader, builder, hauler, and repairer roles. Handles energy harvesting, upgrading, building, hauling, and repairing tasks.
+- **Worker**: Consolidates harvester, upgrader, builder, hauler, and repairer roles. Handles energy harvesting, upgrading, building, hauling, repairing tasks, and assists in defense during emergencies.
 - **Defender**: Manages colony defense.
 - **Claimer**: Claims and reserves new rooms for expansion.
 - **Towers**: Automates tower defense and repairs.
