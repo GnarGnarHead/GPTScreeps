@@ -18,7 +18,6 @@ function run(creep) {
 }
 
 function manageConstructionAndRepairs(creep) {
-    // Critical repairs first
     const criticalRepairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
         filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER || structure.structureType === STRUCTURE_ROAD) && structure.hits < structure.hitsMax * 0.5
     });
@@ -30,7 +29,6 @@ function manageConstructionAndRepairs(creep) {
         return;
     }
 
-    // Construction
     const target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
     if (target) {
         say(creep, '🚧 build');
@@ -40,7 +38,6 @@ function manageConstructionAndRepairs(creep) {
         return;
     }
 
-    // General repairs
     const repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
         filter: (structure) => structure.hits < structure.hitsMax
     });
@@ -52,7 +49,6 @@ function manageConstructionAndRepairs(creep) {
         return;
     }
 
-    // Upgrade controller
     const controller = creep.room.controller;
     if (controller) {
         say(creep, '⚡ upgrade');
@@ -64,7 +60,6 @@ function manageConstructionAndRepairs(creep) {
 
 function harvestAndTransport(creep) {
     if (creep.store.getFreeCapacity() > 0) {
-        // Find the nearest available source
         const sources = creep.room.find(FIND_SOURCES_ACTIVE);
         if (sources.length > 0) {
             const source = creep.pos.findClosestByPath(sources, {
@@ -77,7 +72,6 @@ function harvestAndTransport(creep) {
             }
         }
     } else {
-        // Transport resources to the nearest container or storage
         const target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: (structure) => (structure.structureType === STRUCTURE_CONTAINER ||
                                     structure.structureType === STRUCTURE_STORAGE ||
