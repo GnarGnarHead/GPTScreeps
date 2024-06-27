@@ -9,6 +9,7 @@ const CLAIMER_COUNT = 1;
 const MINIMUM_ENERGY_RESERVE = 300;
 
 module.exports.loop = function () {
+    // Clear memory of dead creeps
     for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
