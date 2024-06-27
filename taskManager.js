@@ -1,22 +1,19 @@
-const worker = require('worker');
-const defender = require('defender');
-const claimer = require('claimer');
+const roles = ['worker', 'defender', 'claimer'];
 
 function assignTasks() {
     const tasks = [];
     for (let name in Game.creeps) {
         let creep = Game.creeps[name];
-        if (creep.memory.role === 'worker') {
+        if (roles.includes(creep.memory.role)) {
             tasks.push({ creep: creep, priority: getTaskPriority(creep) });
-        } else if (creep.memory.role === 'defender') {
-            defender.run(creep);
-        } else if (creep.memory.role === 'claimer') {
-            claimer.run(creep);
         }
     }
 
     tasks.sort((a, b) => a.priority - b.priority);
-    tasks.forEach(task => worker.run(task.creep));
+    tasks.forEach(task => {
+        const roleModule = require(task.creep.memory.role);
+        roleModule.run(task.creep);
+    });
 }
 
 function getTaskPriority(creep) {
