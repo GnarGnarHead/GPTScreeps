@@ -1,43 +1,53 @@
-function runHarvester(creep) {
-    if (creep.memory.working && creep.store[RESOURCE_ENERGY] == 0) {
-        creep.memory.working = false;
-        creep.say('🔄 harvest');
-    }
-    if (!creep.memory.working && creep.store.getFreeCapacity() == 0) {
-        creep.memory.working = true;
-        creep.say('🚚 transfer');
+const harvester = require('./harvester');
+const upgrader = require('./upgrader');
+const builder = require('./builder');
+
+const HARVESTER_COUNT = 2;
+const UPGRADER_COUNT = 1;
+const BUILDER_COUNT = 1;
+
+module.exports.loop = function () {
+    for(let name in Memory.creeps) {
+        if(!Game.creeps[name]) {
+            delete Memory.creeps[name];
+            console.log('Clearing non-existing creep memory:', name);
+        }
     }
 
-    if (creep.memory.working) {
-        transferEnergy(creep);
+    const harvesters = _.filter(Game.creeps, (creep) => creep.memory.role === 'harvester');
+    const upgraders = _.filter(Game.creeps, (creep) => creep.memory.role === 'upgrader');
+    const builders = _.filter(Game.creeps, (creep) => creep.memory.role === 'builder');
+
+    if(harvesters.length < HARVESTER_COUNT) {
+        spawnCreep('harvester');
+    }
+    if(upgraders.length < UPGRADER_COUNT) {
+        spawnCreep('upgrader');
+    }
+    if(builders.length < BUILDER_COUNT) {
+        spawnCreep('builder');
+    }
+
+    for(let name in Game.creeps) {
+        let creep = Game.creeps[name];
+        if(creep.memory.role === 'harvester') {
+            harvester.run(creep);
+        } else if(creep.memory.role === 'upgrader') {
+            upgrader.run(creep);
+        } else if(creep.memory.role === 'builder') {
+            builder.run(creep);
+        }
+    }
+};
+
+function spawnCreep(role) {
+    let body = [WORK, CARRY, MOVE];
+    let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
+    let spawnName = Game.spawns['Spawn1'];
+
+    if(spawnName && spawnName.spawnCreep(body, newName, {memory: {role: role, working: false}}) === OK) {
+        console.log('Spawning new ' + role + ': ' + newName);
     } else {
-        harvestEnergy(creep);
+        console.log('Error spawning ' + role);
     }
 }
-
-function harvestEnergy(creep) {
-    let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-    if (source && creep.harvest(source) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
-    }
-}
-
-function transferEnergy(creep) {
-    let target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: (structure) => {
-            return (structure.structureType == STRUCTURE_SPAWN ||
-                    structure.structureType == STRUCTURE_EXTENSION ||
-                    structure.structureType == STRUCTURE_CONTAINER ||
-                    structure.structureType == STRUCTURE_STORAGE) &&
-                   structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
-        }
-    });
-
-    if (target) {
-        if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(target, {visualizePathStyle: {stroke: '#ffffff'}});
-        }
-    }
-}
-
-module.exports = { run: runHarvester };
