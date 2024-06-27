@@ -5,8 +5,8 @@
 ### Roles
 - **Harvester**: Gathers energy from sources and delivers it to spawns, extensions, and storage.
 - **Upgrader**: Collects energy and upgrades the room controller.
-- **Builder**: Constructs buildings and repairs structures.
-- **Hauler**: Transports energy between sources, storage, and structures.
+- **Builder**: Constructs buildings and repairs structures. Automatically creates construction sites for extensions and containers if needed.
+- **Hauler**: Collects energy from containers, storage, and dropped resources, then transfers it to spawns, extensions, and towers.
 - **Defender**: Attacks hostile creeps to protect the colony.
 - **Claimer**: Claims and reserves new rooms for expansion.
 - **Repairer**: Repairs damaged structures.
