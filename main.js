@@ -1,6 +1,7 @@
 const { assignTasks } = require('taskManager');
 const towers = require('towers');
 const roomManager = require('roomManager');
+const resourceManager = require('resourceManager');
 
 // Constants for creep counts
 const WORKER_COUNT = 6;
@@ -19,7 +20,9 @@ module.exports.loop = function () {
 
     // Manage each room
     for (let roomName in Game.rooms) {
-        roomManager.manageRoom(Game.rooms[roomName]);
+        const room = Game.rooms[roomName];
+        roomManager.manageRoom(room);
+        resourceManager.allocateResources(room);
     }
 
     // Spawn new creeps based on priorities
