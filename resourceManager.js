@@ -1,34 +1,31 @@
-function allocateResources(room) {
-    const structures = room.find(FIND_MY_STRUCTURES);
-    const spawns = structures.filter(s => s.structureType === STRUCTURE_SPAWN);
-    const extensions = structures.filter(s => s.structureType === STRUCTURE_EXTENSION);
-    const towers = structures.filter(s => s.structureType === STRUCTURE_TOWER);
+function manageResources(room) {
+    const sources = room.find(FIND_SOURCES);
+    const storages = room.find(FIND_STRUCTURES, {
+        filter: (structure) => structure.structureType === STRUCTURE_STORAGE ||
+                                structure.structureType === STRUCTURE_CONTAINER
+    });
 
-    const totalCapacity = spawns.concat(extensions).reduce((sum, s) => sum + s.store.getCapacity(RESOURCE_ENERGY), 0);
-    const availableEnergy = room.energyAvailable;
+    sources.forEach(source => {
+        const availableWorkers = _.filter(Game.creeps, creep => creep.memory.role === 'worker' && !creep.memory.working);
+        if (availableWorkers.length > 0) {
+            const worker = availableWorkers[0];
+            if (worker.harvest(source) === ERR_NOT_IN_RANGE) {
+                worker.moveTo(source);
+            }
+        }
+    });
 
-    if (availableEnergy < totalCapacity * 0.5) {
-        prioritizeEnergy(spawns);
-    } else {
-        prioritizeEnergy(spawns.concat(extensions, towers));
-    }
-}
-
-function prioritizeEnergy(structures) {
-    structures.forEach(structure => {
-        if (structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-            const creep = findClosestCreep(structure.pos);
-            if (creep) {
-                creep.transfer(structure, RESOURCE_ENERGY);
+    storages.forEach(storage => {
+        if (storage.store[RESOURCE_ENERGY] < storage.store.getCapacity(RESOURCE_ENERGY) * 0.5) {
+            const workers = _.filter(Game.creeps, creep => creep.memory.role === 'worker' && creep.store[RESOURCE_ENERGY] > 0);
+            if (workers.length > 0) {
+                const worker = workers[0];
+                if (worker.transfer(storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+                    worker.moveTo(storage);
+                }
             }
         }
     });
 }
 
-function findClosestCreep(pos) {
-    return pos.findClosestByRange(FIND_MY_CREEPS, {
-        filter: (creep) => creep.store[RESOURCE_ENERGY] > 0
-    });
-}
-
-module.exports = { allocateResources };
+module.exports = { manageResources };
