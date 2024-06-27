@@ -1,62 +1,20 @@
-# Screeps Colony Scripts
+# Screeps Scripts
 
-## Overview
+This repository contains scripts for managing a Screeps colony with modularized and efficient code.
 
-This repository contains scripts for managing a Screeps colony, including roles, task management, defense logic, and room expansion.
+## Features
+- **Modular Movement and Messaging**: Centralized in `movement.js`.
+- **Task Management**: Helper functions for construction and repairs.
+- **Worker State Management**: Efficient handling of resource collection and task execution.
 
-## Modules
+## File Structure
+- `src/`: Contains all module scripts.
+- `movement.js`: Centralized movement and messaging logic.
+- `worker.js`: Worker creep logic.
+- `construction.js`: Construction and repair logic.
+- `defender.js`: Defender creep logic.
+- `claimer.js`: Claimer creep logic.
 
-### main.js
-- Clears memory of dead creeps.
-- Spawns creeps based on priorities.
-- Assigns tasks using taskManager.
-- Runs tower defense logic.
-- Manages room infrastructure and expansion.
-- Allocates resources efficiently.
-
-### taskManager.js
-- Assigns tasks to creeps based on role.
-- Prioritizes tasks dynamically.
-
-### towers.js
-- Manages tower behavior for attacking hostiles and repairing structures.
-
-### cache.js
-- Provides path caching to optimize CPU usage.
-
-### construction.js
-- Manages the creation of construction sites for extensions and containers.
-
-### worker.js
-- Consolidates harvesting, upgrading, building, repairing, hauling, and remote mining tasks.
-- Includes emergency defense logic.
-
-### defender.js
-- Manages defender creep behavior for attacking hostiles.
-
-### claimer.js
-- Manages claimer creep behavior for claiming new rooms.
-
-### roomManager.js
-- Manages room infrastructure and expansion.
-- Sends claimers to new rooms and sets up basic infrastructure.
-
-## Future Development Goals
-
-1. **Performance Optimization**:
-   - Implement advanced path caching.
-   - Optimize task management efficiency.
-
-2. **Defense Enhancements**:
-   - Improve defender AI.
-   - Coordinate multiple towers for better defense.
-
-3. **Room Expansion**:
-   - Implement remote mining operations.
-   - Develop logic for claiming and managing additional rooms.
-
-## Setup Instructions
-
-1. Clone the repository:
-   ```sh
-   git clone https://github.com/loslapleo/Screeps.git
+## Future Enhancements
+- Pathfinding optimizations.
+- Dynamic role assignment based on colony needs.
