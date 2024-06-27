@@ -1,7 +1,7 @@
 const { manageConstructionAndRepairs } = require('construction');
 const { moveTo, say } = require('movement');
 
-function run(creep) {
+function handleResourceState(creep) {
     if (creep.memory.working && creep.store[RESOURCE_ENERGY] === 0) {
         creep.memory.working = false;
         say(creep, '🔄 harvest');
@@ -10,17 +10,19 @@ function run(creep) {
         creep.memory.working = true;
         say(creep, '🚧 work');
     }
+}
+
+function run(creep) {
+    handleResourceState(creep);
 
     // Emergency defense logic
     const hostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
     if (hostile) {
         say(creep, '⚔️ defend');
-        if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-            moveTo(creep, hostile);
-        } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
+        if (creep.attack(hostile) === ERR_NOT_IN_RANGE || creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
             moveTo(creep, hostile);
         }
-        return; // Skip other tasks if defending
+        return;
     }
 
     if (creep.memory.working) {
@@ -28,14 +30,11 @@ function run(creep) {
             manageConstructionAndRepairs(creep);
         } else {
             say(creep, '🚶 return');
-            // Return to home room if working
-            let exitDir = creep.room.findExitTo(Game.spawns['Spawn1'].room.name);
-            let exit = creep.pos.findClosestByRange(exitDir);
-            moveTo(creep, exit);
+            moveTo(creep, creep.pos.findClosestByRange(creep.room.findExitTo(Game.spawns['Spawn1'].room.name)));
         }
     } else {
         say(creep, '⛏️ harvest');
-        let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+        const source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
             moveTo(creep, source);
         } else {
@@ -57,11 +56,9 @@ function runRemoteMining(creep) {
     if (creep.memory.remoteMining) {
         say(creep, '🌍 remote');
         if (creep.room.name !== targetRoomName) {
-            let exitDir = creep.room.findExitTo(targetRoomName);
-            let exit = creep.pos.findClosestByRange(exitDir);
-            moveTo(creep, exit);
+            moveTo(creep, creep.pos.findClosestByRange(creep.room.findExitTo(targetRoomName)));
         } else {
-            let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+            const source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
             if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
                 moveTo(creep, source);
             }
@@ -69,11 +66,9 @@ function runRemoteMining(creep) {
     } else {
         say(creep, '🔄 return');
         if (creep.room.name !== Game.spawns['Spawn1'].room.name) {
-            let exitDir = creep.room.findExitTo(Game.spawns['Spawn1'].room.name);
-            let exit = creep.pos.findClosestByRange(exitDir);
-            moveTo(creep, exit);
+            moveTo(creep, creep.pos.findClosestByRange(creep.room.findExitTo(Game.spawns['Spawn1'].room.name)));
         } else {
-            let storage = Game.spawns['Spawn1'].pos.findClosestByPath(FIND_STRUCTURES, {
+            const storage = Game.spawns['Spawn1'].pos.findClosestByPath(FIND_STRUCTURES, {
                 filter: (structure) => (structure.structureType === STRUCTURE_SPAWN ||
                                         structure.structureType === STRUCTURE_EXTENSION ||
                                         structure.structureType === STRUCTURE_STORAGE) &&
