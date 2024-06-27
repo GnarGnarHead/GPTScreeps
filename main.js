@@ -1,7 +1,7 @@
 const worker = require('./worker');
 
 // Constants to define desired numbers of each creep role
-const WORKER_COUNT = 5;
+const WORKER_COUNT = 10;
 
 // Minimum energy reserve to ensure critical creeps can be spawned
 const MINIMUM_ENERGY_RESERVE = 300;
@@ -46,9 +46,7 @@ module.exports.loop = function () {
 function assignTasks() {
     for (let name in Game.creeps) {
         let creep = Game.creeps[name];
-        if (creep.memory.role === 'worker') {
-            worker.run(creep);
-        }
+        worker.run(creep);
     }
 }
 
@@ -60,10 +58,7 @@ function assignTasks() {
  * @param {string} role - The role of the creep to be spawned.
  */
 function spawnCreep(role) {
-    let body;
-    if (role === 'worker') {
-        body = [WORK, CARRY, MOVE, MOVE];
-    }
+    let body = [WORK, CARRY, MOVE, MOVE];
 
     let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
     let spawnName = Game.spawns['Spawn1'];
@@ -79,6 +74,4 @@ function spawnCreep(role) {
             console.log('Error spawning ' + role + ': ' + result);
         }
     } else {
-        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
-    }
-}
+        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable
