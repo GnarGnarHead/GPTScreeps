@@ -1,5 +1,6 @@
 const { assignTasks } = require('taskManager');
 const towers = require('towers');
+const roomManager = require('roomManager');
 
 // Constants for creep counts
 const WORKER_COUNT = 6;
@@ -14,6 +15,11 @@ module.exports.loop = function () {
             delete Memory.creeps[name];
             console.log('Clearing non-existing creep memory:', name);
         }
+    }
+
+    // Manage each room
+    for (let roomName in Game.rooms) {
+        roomManager.manageRoom(Game.rooms[roomName]);
     }
 
     // Spawn new creeps based on priorities
@@ -72,7 +78,7 @@ function spawnCreep(role) {
     let energyRequired = _.sum(body, part => BODYPART_COST[part]);
 
     if (energyAvailable >= energyRequired) {
-        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
+        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false, target: 'W8N3' } });
 
         if (result === OK) {
             console.log('Spawning new ' + role + ': ' + newName);
