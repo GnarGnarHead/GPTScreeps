@@ -34,7 +34,7 @@ module.exports.loop = function () {
         }
     }
 
-    if (Game.time % 100 === 0) { // Adjust the frequency as needed
+    if (Game.time % 100 === 0) {
         for (const roomName in Game.rooms) {
             const room = Game.rooms[roomName];
             createOptimalConstructionSites(room);
