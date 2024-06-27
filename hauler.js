@@ -41,6 +41,7 @@ function runHauler(creep) {
                 creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
             }
         } else {
+            console.log(`${creep.name} could not find a target to transfer energy to. Engaging in secondary tasks.`);
             assistWithOtherTasks(creep);
         }
     }
@@ -49,18 +50,22 @@ function runHauler(creep) {
 function assistWithOtherTasks(creep) {
     let constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
     if (constructionSite) {
+        console.log(`${creep.name} found a construction site: ${constructionSite.structureType}`);
         if (creep.build(constructionSite) === ERR_NOT_IN_RANGE) {
             creep.moveTo(constructionSite, { visualizePathStyle: { stroke: '#ffffff' } });
         }
     } else {
+        console.log(`${creep.name} found no construction sites. Attempting to repair structures.`);
         let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
             filter: (structure) => structure.hits < structure.hitsMax && structure.structureType !== STRUCTURE_WALL
         });
         if (repairTarget) {
+            console.log(`${creep.name} found a structure to repair: ${repairTarget.structureType}`);
             if (creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(repairTarget, { visualizePathStyle: { stroke: '#ffaa00' } });
             }
         } else {
+            console.log(`${creep.name} found no structures to repair. Upgrading controller.`);
             if (creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(creep.room.controller, { visualizePathStyle: { stroke: '#ffffff' } });
             }
