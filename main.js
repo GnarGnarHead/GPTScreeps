@@ -3,7 +3,7 @@ const upgrader = require('./upgrader');
 const builder = require('./builder');
 const hauler = require('./hauler');
 const defender = require('./defender');
-const tower = require('./tower');
+const towers = require('./towers');
 const claimer = require('./claimer');
 
 // Constants to define desired numbers of each creep role
@@ -60,9 +60,9 @@ module.exports.loop = function () {
     assignTasks();
 
     // Tower logic
-    const towers = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
-    for (let t of towers) {
-        tower.run(t);
+    const towersArray = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
+    for (let t of towersArray) {
+        towers.run(t);
     }
 };
 
@@ -97,6 +97,8 @@ function assignTasks() {
  */
 function spawnCreep(role) {
     let body;
+    let energyRequired;
+    
     if (role === 'hauler') {
         body = [CARRY, CARRY, MOVE, MOVE];
     } else if (role === 'builder' || role === 'upgrader') {
@@ -108,14 +110,21 @@ function spawnCreep(role) {
     } else {
         body = [WORK, WORK, CARRY, MOVE]; // Example for harvester
     }
-
+    
+    energyRequired = _.sum(body, part => BODYPART_COST[part]);
     let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
     let spawnName = Game.spawns['Spawn1'];
-    let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
 
-    if (result === OK) {
-        console.log('Spawning new ' + role + ': ' + newName);
+    let energyAvailable = spawnName.room.energyAvailable;
+
+    if (energyAvailable >= energyRequired) {
+        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
+        if (result === OK) {
+            console.log('Spawning new ' + role + ': ' + newName);
+        } else {
+            console.log('Error spawning ' + role + ': ' + result);
+        }
     } else {
-        console.log('Error spawning ' + role + ': ' + result);
+        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
     }
 }
