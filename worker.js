@@ -2,8 +2,8 @@
  * Worker Module
  * 
  * This module defines the behavior of worker creeps.
- * Workers handle harvesting, upgrading, building, hauling, and repairing tasks.
- * Additionally, they assist in defense during emergencies.
+ * Workers handle harvesting, upgrading, building, hauling, repairing tasks,
+ * assist in defense during emergencies, and perform remote mining if needed.
  */
 
 function runWorker(creep) {
@@ -27,6 +27,7 @@ function runWorker(creep) {
         return; // Skip other tasks if defending
     }
 
+    // Regular tasks
     if (creep.memory.working) {
         let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
         if (target) {
@@ -40,12 +41,39 @@ function runWorker(creep) {
             });
             if (repairTarget && creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
                 creep.moveTo(repairTarget, { visualizePathStyle: { stroke: '#ffaa00' } });
+            } else {
+                let controller = creep.room.controller;
+                if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(controller, { visualizePathStyle: { stroke: '#ffffff' } });
+                }
             }
         }
     } else {
         let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
         if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
             creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+        }
+    }
+
+    // Remote mining
+    if (!creep.memory.working) {
+        runRemoteMining(creep);
+    }
+}
+
+function runRemoteMining(creep) {
+    const targetRoomName = 'W8N3'; // Set your target remote room
+    if (creep.room.name !== targetRoomName) {
+        let exitDir = creep.room.findExitTo(targetRoomName);
+        let exit = creep.pos.findClosestByRange(exitDir);
+        creep.moveTo(exit, { visualizePathStyle: { stroke: '#ffaa00' } });
+    } else {
+        let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
+        if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
+            creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
+        } else if (creep.store.getFreeCapacity() === 0) {
+            let home = Game.spawns['Spawn1'];
+            creep.moveTo(home, { visualizePathStyle: { stroke: '#ffffff' } });
         }
     }
 }
