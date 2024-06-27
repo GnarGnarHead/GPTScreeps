@@ -93,4 +93,14 @@ function spawnCreep(role) {
     let energyRequired = _.sum(body, part => BODYPART_COST[part]);
 
     if (energyAvailable >= energyRequired) {
-        let result = spawnName.spawnCreep(body, newName, {
+        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
+
+        if (result === OK) {
+            console.log('Spawning new ' + role + ': ' + newName);
+        } else {
+            console.log('Error spawning ' + role + ': ' + result);
+        }
+    } else {
+        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
+    }
+}
