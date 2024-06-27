@@ -1,108 +1,107 @@
-const { getPath } = require('./cache');
+const worker = require('./worker');
+const defender = require('./defender');
+const claimer = require('./claimer');
+const towers = require('./towers');
 
-function runWorker(creep) {
-    if (creep.memory.working && creep.store[RESOURCE_ENERGY] === 0) {
-        creep.memory.working = false;
-        creep.say('🔄 harvest');
-    }
-    if (!creep.memory.working && creep.store.getFreeCapacity() === 0) {
-        creep.memory.working = true;
-        creep.say('🚧 work');
-    }
+const WORKER_COUNT = 6;
+const DEFENDER_COUNT = 2;
+const CLAIMER_COUNT = 1;
+const MINIMUM_ENERGY_RESERVE = 300;
 
-    const hostile = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-    if (hostile) {
-        if (creep.attack(hostile) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
-        } else if (creep.rangedAttack(hostile) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(hostile, { visualizePathStyle: { stroke: '#ff0000' } });
+module.exports.loop = function () {
+    for (let name in Memory.creeps) {
+        if (!Game.creeps[name]) {
+            delete Memory.creeps[name];
+            console.log('Clearing non-existing creep memory:', name);
         }
-        return;
     }
 
+    const workers = _.filter(Game.creeps, (creep) => creep.memory.role === 'worker');
+    const defenders = _.filter(Game.creeps, (creep) => creep.memory.role === 'defender');
+    const claimers = _.filter(Game.creeps, (creep) => creep.memory.role === 'claimer');
+
+    if (Game.spawns['Spawn1'].room.energyAvailable >= MINIMUM_ENERGY_RESERVE) {
+        if (workers.length < WORKER_COUNT) {
+            spawnCreep('worker');
+        } else if (defenders.length < DEFENDER_COUNT) {
+            spawnCreep('defender');
+        } else if (claimers.length < CLAIMER_COUNT) {
+            spawnCreep('claimer');
+        }
+    }
+
+    assignTasks();
+
+    const towersArray = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_TOWER);
+    for (let t of towersArray) {
+        towers.run(t);
+    }
+};
+
+function assignTasks() {
+    const tasks = [];
+    for (let name in Game.creeps) {
+        let creep = Game.creeps[name];
+        if (creep.memory.role === 'worker') {
+            tasks.push({ creep: creep, priority: getTaskPriority(creep) });
+        } else if (creep.memory.role === 'defender') {
+            defender.run(creep);
+        } else if (creep.memory.role === 'claimer') {
+            claimer.run(creep);
+        }
+    }
+
+    tasks.sort((a, b) => a.priority - b.priority);
+    tasks.forEach(task => worker.run(task.creep));
+}
+
+function getTaskPriority(creep) {
     if (creep.memory.working) {
-        let target = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
-        if (target) {
-            if (creep.build(target) === ERR_NOT_IN_RANGE) {
-                const path = getPath(creep.pos, target.pos);
-                creep.moveByPath(path);
-            }
+        let constructionSite = creep.pos.findClosestByPath(FIND_CONSTRUCTION_SITES);
+        if (constructionSite) {
+            return 1; // Building
+        }
+        let structure = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+            filter: (structure) => structure.hits < structure.hitsMax
+        });
+        if (structure) {
+            return 2; // Repairing
+        }
+        let controller = creep.room.controller;
+        if (controller) {
+            return 3; // Upgrading
+        }
+    }
+    if (creep.store.getFreeCapacity() > 0) {
+        return 4; // Harvesting
+    }
+    return 5; // Remote Mining
+}
+
+function spawnCreep(role) {
+    let body;
+    if (role === 'worker') {
+        body = [WORK, CARRY, MOVE];
+    } else if (role === 'defender') {
+        body = [TOUGH, ATTACK, MOVE, MOVE];
+    } else if (role === 'claimer') {
+        body = [CLAIM, MOVE];
+    }
+
+    let newName = role.charAt(0).toUpperCase() + role.slice(1) + Game.time;
+    let spawnName = Game.spawns['Spawn1'];
+    let energyAvailable = spawnName.room.energyAvailable;
+    let energyRequired = _.sum(body, part => BODYPART_COST[part]);
+
+    if (energyAvailable >= energyRequired) {
+        let result = spawnName.spawnCreep(body, newName, { memory: { role: role, working: false } });
+
+        if (result === OK) {
+            console.log('Spawning new ' + role + ': ' + newName);
         } else {
-            createConstructionSites(creep.room);
-            let repairTarget = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                filter: (structure) => structure.hits < structure.hitsMax
-            });
-            if (repairTarget && creep.repair(repairTarget) === ERR_NOT_IN_RANGE) {
-                const path = getPath(creep.pos, repairTarget.pos);
-                creep.moveByPath(path);
-            } else {
-                let controller = creep.room.controller;
-                if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) {
-                    const path = getPath(creep.pos, controller.pos);
-                    creep.moveByPath(path);
-                }
-            }
+            console.log('Error spawning ' + role + ': ' + result);
         }
     } else {
-        let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-        if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
-            const path = getPath(creep.pos, source.pos);
-            creep.moveByPath(path);
-        }
-    }
-
-    if (!creep.memory.working) {
-        runRemoteMining(creep);
+        console.log('Not enough energy to spawn ' + role + '. Available: ' + energyAvailable + ', Required: ' + energyRequired);
     }
 }
-
-function runRemoteMining(creep) {
-    const targetRoomName = 'W8N3';
-    if (creep.room.name !== targetRoomName) {
-        let exitDir = creep.room.findExitTo(targetRoomName);
-        let exit = creep.pos.findClosestByRange(exitDir);
-        creep.moveTo(exit, { visualizePathStyle: { stroke: '#ffaa00' } });
-    } else {
-        let source = creep.pos.findClosestByPath(FIND_SOURCES_ACTIVE);
-        if (source && creep.harvest(source) === ERR_NOT_IN_RANGE) {
-            creep.moveTo(source, { visualizePathStyle: { stroke: '#ffaa00' } });
-        } else if (creep.store.getFreeCapacity() === 0) {
-            let home = Game.spawns['Spawn1'];
-            creep.moveTo(home, { visualizePathStyle: { stroke: '#ffffff' } });
-        }
-    }
-}
-
-function createConstructionSites(room) {
-    const extensionCount = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_EXTENSION && structure.room.name === room.name).length;
-    const extensionSitesCount = _.filter(Game.constructionSites, (site) => site.structureType === STRUCTURE_EXTENSION && site.room.name === room.name).length;
-    const maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][room.controller.level];
-
-    const containerCount = _.filter(Game.structures, (structure) => structure.structureType === STRUCTURE_CONTAINER && structure.room.name === room.name).length;
-    const containerSitesCount = _.filter(Game.constructionSites, (site) => site.structureType === STRUCTURE_CONTAINER && site.room.name === room.name).length;
-    const maxContainers = CONTROLLER_STRUCTURES[STRUCTURE_CONTAINER][room.controller.level];
-
-    if (extensionCount + extensionSitesCount < maxExtensions) {
-        for (let x = room.controller.pos.x - 5; x <= room.controller.pos.x + 5; x++) {
-            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.y + 5; y++) {
-                if (room.createConstructionSite(x, y, STRUCTURE_EXTENSION) === OK) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    if (containerCount + containerSitesCount < maxContainers) {
-        for (let x = room.controller.pos.x - 5; x <= room.controller.pos.x + 5; x++) {
-            for (let y = room.controller.pos.y - 5; y <= room.controller.pos.y + 5; y++) {
-                if (room.createConstructionSite(x, y, STRUCTURE_CONTAINER) === OK) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-module.exports = { run: runWorker };
