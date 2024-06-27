@@ -3,11 +3,11 @@ const { moveTo, say } = require('movement');
 function run(creep) {
     if (creep.memory.claiming && creep.store[RESOURCE_ENERGY] === 0) {
         creep.memory.claiming = false;
-        say(creep, '🔄 harvest', 3);
+        say(creep, '🔄 harvest');
     }
     if (!creep.memory.claiming && creep.store.getFreeCapacity() === 0) {
         creep.memory.claiming = true;
-        say(creep, '🏴 claim', 3);
+        say(creep, '🏴 claim');
     }
 
     if (creep.memory.claiming) {
